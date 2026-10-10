@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101f32">
-<meta name="description" content="Road Sign Lens Pro 3.1 — mobile field survey for locating and reviewing roadside traffic signs.">
+<meta name="description" content="Road Sign Lens Pro 3.2 — mobile field survey for locating and reviewing roadside traffic signs.">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Sign Lens Pro">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoaklp9xA9JZyTc=" crossorigin="">
@@ -224,8 +224,16 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
 .radar{background:#194757;border:1px solid #3d817e;color:#55f2cc}
 .sr-label{color:#bde4e2}
 ::placeholder{opacity:1}
+
+/* v3.2: clear, accessible AI readiness and retry without changing the restored theme */
+.ai-load-controls{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.ai-load-controls .btn{min-height:38px;padding:6px 11px;white-space:nowrap;font-size:.76rem}
+.ai-load-controls [hidden]{display:none!important}
+#aiDetail{max-width:280px;overflow-wrap:anywhere;line-height:1.5}
+#modelChip[role=status]{max-width:54%;text-align:right;white-space:normal}
+@media(max-width:380px){.ai-load-controls .btn{font-size:.73rem;padding:6px 9px}.ai-load-controls .badge{font-size:.65rem}}
 </style>
-<title>Road Sign Lens Pro 3.1 | Field Survey</title>
+<title>Road Sign Lens Pro 3.2 | Field Survey</title>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -255,7 +263,7 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
  </div>
  <div class="survey-grid"><div class="panel scan-panel"><div class="panel-head"><div><span class="kicker" data-en="CAMERA FEED" data-ar="بث الكاميرا">CAMERA FEED</span><h2 data-en="Live sign detection" data-ar="رصد اللوحات المباشر">Live sign detection</h2></div><div class="camera-chip" id="cameraChip"><span class="status-led"></span><span id="cameraChipText" data-en="Camera offline" data-ar="الكاميرا مغلقة">Camera offline</span></div></div>
  <div class="camera-stage" id="cameraStage"><video id="video" autoplay muted playsinline aria-label="Live rear-camera preview"></video><img id="photoPreview" alt="Selected photo for traffic sign analysis" hidden><canvas id="overlay" aria-hidden="true"></canvas><div class="camera-fallback" id="cameraFallback"><div class="finder-icon" aria-hidden="true">⌗<span>↗</span></div><h3 data-en="Ready to survey" data-ar="جاهز للمسح">Ready to survey</h3><p data-en="Start your camera or select a road photo. No images are uploaded to a server by this app." data-ar="شغّل الكاميرا أو اختر صورة للطريق. لا يرفع التطبيق الصور إلى خادم.">Start your camera or select a road photo. No images are uploaded to a server by this app.</p></div>
-  <div class="camera-corner-label" id="viewfinderLabel">SIGN SEARCH AREA</div><div class="camera-footer"><span id="regionCount" aria-live="off">0 possible regions</span><span id="modelChip">AI: not loaded</span></div>
+  <div class="camera-corner-label" id="viewfinderLabel">SIGN SEARCH AREA</div><div class="camera-footer"><span id="regionCount" aria-live="off">0 possible regions</span><span id="modelChip" role="status" aria-live="polite">AI: standby</span></div>
   </div>
   <canvas id="scanCanvas" width="256" height="144" hidden></canvas><canvas id="cropCanvas" width="224" height="224" hidden></canvas>
   <div class="scan-toolbar"><button class="btn btn-dark" id="cameraBtn" type="button"><span aria-hidden="true">◉</span><span id="cameraBtnLabel" data-en="Start camera" data-ar="تشغيل الكاميرا">Start camera</span></button><button class="btn btn-outline" id="uploadBtn" type="button"><span aria-hidden="true">↥</span><span data-en="Use photo" data-ar="استخدام صورة">Use photo</span></button><input type="file" id="photoFile" accept="image/*" hidden><button class="btn btn-accent" id="scanBtn" type="button" disabled><span aria-hidden="true">✧</span><span data-en="Analyze now" data-ar="تحليل الآن">Analyze now</span></button></div>
@@ -264,7 +272,7 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
  </div>
  <div class="right-stack"><div class="panel status-panel"><div class="panel-head"><div><span class="kicker" data-en="FIELD SENSORS" data-ar="الحساسات الميدانية">FIELD SENSORS</span><h2 data-en="Survey readiness" data-ar="جاهزية المسح">Survey readiness</h2></div><span class="tiny-dot" aria-hidden="true">●</span></div>
   <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">⌖</span><div><strong data-en="GPS positioning" data-ar="تحديد الموقع">GPS positioning</strong><small id="gpsDetail">Off · GPS not collecting</small></div></div><button id="gpsBtn" type="button" class="btn tiny-btn" aria-pressed="false">Enable</button></div>
-  <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">✧</span><div><strong data-en="On-device AI" data-ar="الذكاء الاصطناعي المحلي">On-device AI</strong><small id="aiDetail">Loads when you analyze</small></div></div><span class="badge" id="aiState">Standby</span></div>
+  <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">✧</span><div><strong data-en="On-device AI" data-ar="الذكاء الاصطناعي المحلي">On-device AI</strong><small id="aiDetail" aria-live="polite">Not downloaded yet · tap Prepare AI, or start the camera</small></div></div><div class="ai-load-controls"><span class="badge" id="aiState">Standby</span><button class="btn btn-outline" id="prepareAiBtn" type="button">Prepare AI</button></div></div>
   <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">◇</span><div><strong data-en="Device storage" data-ar="التخزين على الجهاز">Device storage</strong><small data-en="Saved only in this browser" data-ar="محفوظ في هذا المتصفح فقط">Saved only in this browser</small></div></div><span class="badge okay" data-en="Local" data-ar="محلي">Local</span></div>
   <div class="progress" id="modelProgress" hidden><div><span id="modelProgressText">Downloading AI model…</span><span id="modelProgressPct">0%</span></div><div class="progress-track"><i id="progressBar"></i></div></div>
  </div>

@@ -1,16 +1,16 @@
-# Road Sign Lens Pro v3.1 — Restored Edition
+# Road Sign Lens Pro v3.2 — AI Readiness UX Fix
 
-This fixes the v3 release's visual-regression issue by restoring the original midnight-blue/turquoise visual identity and prioritizing the camera on mobile screens. Full CSS is embedded in `index.html`, so an omitted `styles.css` file cannot by itself cause a bare, unstyled interface. The standalone `styles.css` is retained for developers. It also updates the PWA cache and keeps the v3 camera candidate detection, AI classification, GPS, review and exports intact.
+## What changed
+- The previous "AI: not loaded" label was misleading: it was an intentional lazy-load standby state, **not** proof of failure.
+- New clear states: **Standby → Loading → Ready**, or **Unavailable** with a helpful reason and Retry AI button.
+- **Prepare AI** starts model download without needing camera permission. Starting the camera in continuous recognition mode or selecting a photo also starts preparation automatically.
+- Progress display during download and 60-second cooldown for failed background retries.
+- Preserved the restored dark-blue/turquoise design, mapping, GPS, inventory and exports.
+- Revisions do not guarantee model compatibility with every version of iOS Safari; this needs real-device testing.
 
-## Deploy to your existing GitHub Pages repository
+## Use with GitHub Pages
+Extract ZIP and replace files in the **repository root**. Commit to the Pages branch, refresh Safari after deployment (old service workers may cache v3.1).
 
-1. Download and **extract** the package. Replace ALL matching files at the **repository root** (not inside a new subfolder). At minimum upload `index.html`, `app.js`, `signs.js`, `detector.js`, `sw.js`, `styles.css`, icons, and manifest. **Do not upload the ZIP directly.**
-2. Commit the changes on the branch selected under GitHub **Settings → Pages** (often `main / root`).
-3. Open the published URL in Safari. Reload once after the updated site appears so the previous service worker can activate and remove its old cache. If Safari still shows a stale site, open Safari settings and clear the saved website data *after exporting your observations*, because local browser data may be lost.
-4. Do not clear browser data casually; inventory is stored locally on this device and has not been synced to the cloud.
+On first use: allow internet access to download the AI model. The browser fetches transformers.js from jsDelivr and the MobileCLIP model from Hugging Face. On iOS Safari the model may exceed device memory or the download may be blocked by network settings. Use **Retry AI** after fixing the issue, or continue entering signs manually. Do not use while driving.
 
-## Limits
-
-AI recognition is not yet validated for Oman or safety-critical use. Candidate regions track in camera frames, while classification runs periodically. Phone GPS ≠ physical signpost location. Manually review sign type and pin before trusting the inventory. Safari HTTPS required for camera and geolocation. Do not use while driving.
-
-Accessibility design target: WCAG 2.2 AA with skip links, focus states, keyboard forms, high contrast and reduced motion controls, bilingual Arabic RTL, list alternative for map; independent VoiceOver and real-device audit still needed.
+The recognition engine is experimental and not yet calibrated or field-validated for Omani signs. Phone GPS describes the device's location, not the signpost's surveyed coordinates. Review all AI suggestions and pins.

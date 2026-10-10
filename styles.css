@@ -211,3 +211,11 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
 .radar{background:#194757;border:1px solid #3d817e;color:#55f2cc}
 .sr-label{color:#bde4e2}
 ::placeholder{opacity:1}
+
+/* v3.2: clear, accessible AI readiness and retry without changing the restored theme */
+.ai-load-controls{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.ai-load-controls .btn{min-height:38px;padding:6px 11px;white-space:nowrap;font-size:.76rem}
+.ai-load-controls [hidden]{display:none!important}
+#aiDetail{max-width:280px;overflow-wrap:anywhere;line-height:1.5}
+#modelChip[role=status]{max-width:54%;text-align:right;white-space:normal}
+@media(max-width:380px){.ai-load-controls .btn{font-size:.73rem;padding:6px 9px}.ai-load-controls .badge{font-size:.65rem}}
