@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101f32">
-<meta name="description" content="Road Sign Lens Pro 3.3 — mobile field survey for locating and reviewing roadside traffic signs.">
+<meta name="description" content="Road Sign Lens Pro 3.5 — mobile field survey for locating and reviewing roadside traffic signs.">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Sign Lens Pro">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoaklp9xA9JZyTc=" crossorigin="">
@@ -233,7 +233,7 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
 #modelChip[role=status]{max-width:54%;text-align:right;white-space:normal}
 @media(max-width:380px){.ai-load-controls .btn{font-size:.73rem;padding:6px 9px}.ai-load-controls .badge{font-size:.65rem}}
 </style>
-<title>Road Sign Lens Pro 3.3 | Field Survey</title>
+<title>Road Sign Lens Pro 3.5 | Field Survey</title>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -297,6 +297,6 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
 <label class="form-field full-field" for="editNotes"><span data-en="Field notes (optional)" data-ar="ملاحظات ميدانية (اختياري)">Field notes (optional)</span><textarea id="editNotes" rows="3" maxlength="500" placeholder="Condition, location, pole, direction..."></textarea></label><div class="full-field form-tips" id="editLocationSource">Location: not provided</div><div class="full-field dialog-util"><button class="btn btn-outline" type="button" id="useCurrentGpsBtn" data-en="⌖ Use current GPS" data-ar="⌖ استخدام GPS الحالي">⌖ Use current GPS</button><button class="btn btn-outline" type="button" id="chooseMapBtn" data-en="⌖ Pick location on map" data-ar="⌖ اختيار من الخريطة">⌖ Pick location on map</button></div><label class="settings-option full-field"><span><strong data-en="Mark as reviewed" data-ar="اعتماد المراجعة">Mark as reviewed</strong><small data-en="Only after visually confirming the sign and its position" data-ar="فقط بعد التحقق من اللوحة وموقعها">Only after visually confirming the sign and its position</small></span><input type="checkbox" id="editReviewed"></label></div><div class="dialog-actions"><button type="button" class="btn btn-danger" id="deleteRecordBtn" hidden data-en="Delete" data-ar="حذف">Delete</button><button type="button" class="btn btn-outline" id="cancelDialog" data-en="Cancel" data-ar="إلغاء">Cancel</button><button type="submit" class="btn btn-dark" id="saveDialog" value="save" data-en="Save observation" data-ar="حفظ المشاهدة">Save observation</button></div></form></dialog>
 <div class="confirm-layer" id="confirmLayer" hidden role="presentation"><div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmBody"><h2 id="confirmTitle">Delete all records?</h2><p id="confirmBody">This deletes data saved on this device. Export a copy first.</p><div class="dialog-actions"><button id="confirmCancel" class="btn btn-outline" type="button">Cancel</button><button id="confirmYes" class="btn btn-danger" type="button">Delete</button></div></div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
-<script type="module" src="app.js"></script>
+<script type="module" src="app.js?v=3.5"></script>
 </body>
 </html>

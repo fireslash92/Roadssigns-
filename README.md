@@ -1,25 +1,31 @@
-# Road Sign Lens Pro 3.3 — Safari AI library import repair
+# Road Sign Lens Pro v3.5 — No GitHub Actions required
 
-**This is a source-code GitHub Pages project that MUST be built by GitHub Actions.** Do not host the unbuilt `index.html` using "Deploy from a branch": its AI engine imports require a Vite build.
+This is an **upload-ready, static website** for your existing GitHub Pages repo. Do not upload the ZIP as a file; **extract** it and upload the files inside.
 
-## Why the previous version failed
-v3.2 asked Safari to `import()` the Transformers.js library from jsDelivr at runtime. iOS can fail to fetch or execute third-party JavaScript modules, reporting a module-import error. This version packages Transformers.js with the website and also publishes ONNX Runtime's supporting JavaScript / WASM files on the same GitHub Pages domain. Only the AI model weights are fetched separately from Hugging Face on first use.
+## Deploy in GitHub's web interface
 
-## Deploy to the existing website
-1. Export any survey records you care about from the existing live site before changing deployment settings (this update uses the same localStorage key, but browser clearing is irreversible).
-2. Extract this ZIP locally and upload **all its contents, including the hidden `.github/` folder**, into your `fireslash92/Roadssigns-` repository root. GitHub's web uploader may not preserve hidden folders from some file-pickers; verify `.github/workflows/deploy.yml` is present on GitHub afterward.
-3. In **GitHub → Roadssigns- → Settings → Pages → Build and deployment → Source**, choose **GitHub Actions** (NOT "Deploy from a branch").
-4. Open the repository's **Actions** tab and confirm that **Build and publish Road Sign Lens** succeeds. If no run starts, run `workflow_dispatch` manually (Actions → workflow → Run workflow).
-5. Open https://fireslash92.github.io/Roadssigns-/ in Safari. Refresh after the new deployment. Tap **Prepare AI** while connected to Wi-Fi.
+1. Open https://github.com/fireslash92/Roadssigns- and select **Add file → Upload files**.
+2. Extract `road-sign-lens-v3_5-no-actions.zip`. Upload **index.html, app.js, detector.js, signs.js, sw.js, manifest.webmanifest, both PNG icons, and .nojekyll** to the **root** of the `main` branch, replacing the old files with the same names. `.nojekyll` is optional for this version.
+3. Go to **Settings → Pages → Build and deployment**, set **Source: Deploy from a branch**, **Branch: main**, **Folder: / (root)**. Save.
+4. After GitHub Pages publishes, open https://fireslash92.github.io/Roadssigns-/ in Safari and tap **Prepare AI**.
 
-## Design & behavior
-- Preserves v3.1 visual layout, camera and photo input, GPS mapping, inventory, accessibility options, and GIS exports.
-- AI library and ONNX compute files load from your GitHub Pages site. The MobileCLIP model **still downloads from Hugging Face**, can be tens of MB, and may require Wi-Fi. A blocked or unsuccessful model fetch can still prevent recognition.
-- AI startup errors are separated into `module` and `model` stages. If AI fails, tap **Copy details** and share the diagnostic message; the app still supports manual observations.
-- AI sign types and phone GPS locations are provisional and require review. Not a driver assistance system or a field-validated Omani sign detector. Never use it while driving.
+**Important:** Removing the old `.github/workflows/` directory is optional. Branch publishing does not need Actions. If the repository still has an old deploy workflow enabled, disable it to avoid confusing deployments.
 
-## Local development
-`npm install && npm run dev` (in local development the ONNX assets copied by `npm run build` are not necessarily available; use `npm run build` then `npm run preview` to test a full setup.)
+## AI loading and limitations
 
-## Verification scope
-Source syntax + geometry tests can be checked without downloading model weights. Production GitHub Actions build and actual iPhone Safari recognition are not verified in this environment, and should be tested on the deployed site.
+Unlike v3.4, this build has **no bare NPM import**, no Vite config, and no build requirement. It downloads Transformers.js from available CDN sources (first esm.sh, then jsDelivr, then unpkg), and downloads MobileCLIP weights from Hugging Face. Internet access is still required for first use and service restrictions may prevent loading. If all CDN sources fail, **Copy details** will list the attempted sources. This approach cannot guarantee recognition on Safari; a *fully self-hosted* AI build would require bundling dependencies elsewhere and uploading its output.
+
+The AI is a general zero-shot image classifier, not a road-sign-specific field-validated detector. Treat its predictions as provisional. Phone GPS marks the phone location, not the exact sign location. Manual correction and inventory review are available. Do not use the application while driving.
+
+## Preserve records
+
+The app uses the existing `road-sign-lens-pro-v3-records` localStorage key. **Export records before upgrading**, and avoid deleting Safari website data while testing. A new domain or browser will not share the saved records.
+
+## Included files
+
+- `index.html` — complete responsive interface and embedded styling
+- `app.js`, `signs.js`, `detector.js` — scanning/AI initialization and inventory logic
+- `sw.js`, `manifest.webmanifest`, `icon-192.png`, `icon-512.png` — home-screen/offline shell assets
+- `.nojekyll` — GitHub Pages static hosting marker
+
+Tests cover code syntax, existing detection/data tests, basic local static file serving and linking. Real iPhone model initialization is not verified in this environment.
