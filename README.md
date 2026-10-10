@@ -1,42 +1,55 @@
-# Road Sign Lens v2 — camera recognition + GPS mapping
+# Road Sign Lens Pro v3.0 — accessible traffic sign field survey
 
-A mobile-first bilingual English/Arabic static web application. It identifies a **single centered sign** using the experimental `Xenova/mobileclip_s0` zero-shot image classifier via Transformers.js, then optionally logs the phone's location at the time of a camera scan.
+**Status:** functioning mobile-first research / field-survey prototype, **not** a validated road-safety or asset-survey product. Prepared for GitHub Pages and Safari. UI flows and core geometry are tested; live iOS camera/GPS, remote model, Omani road-sign accuracy, and complete WCAG conformance require field validation.
 
-## New in v2
+## What is implemented
 
-- **Map** tab using Leaflet 1.9.4 and © OpenStreetMap map tiles. A detected sign with GPS is shown as a map pin.
-- **GPS tagging** opt-in: tap **Enable GPS tagging** under the camera. Grant Safari's precise location permission for best results. The app records the *phone's GPS location*, not the surveyed position of the road sign.
-- **Manual correction**: Map → choose a scan → Adjust on map → tap where the sign actually stands. You can add positions to photos and scans recorded without GPS.
-- **GPS accuracy** displayed in metres when provided by the device.
-- **GeoJSON, CSV, KML** export of mapped observations, usable in mapping/GIS applications, including QGIS and Google Earth. GeoJSON follows longitude/latitude ordering.
-- **Persistent scan records** in this browser's `localStorage` (up to 500). No cloud database. Clearing browser site data deletes history and map pins.
-- **De-duplication** when continuous scanning sees the same sign type within ~35 m in a 90-second window. Manual scanning saves each observation.
+- **Live camera candidate tracker:** the rear-camera view is analyzed about 3 times/sec using local color/shape region proposals and lightweight overlapping-frame IDs. These IDs are temporary screen-region IDs, not persistent physical asset identifiers. Green boxes mean **possible** signs, not confirmed objects.
+- **Asynchronous sign type suggestions:** a browser-based `Xenova/mobileclip_s0` zero-shot vision model (Transformers.js) classifies up to two candidate crops at a time against the 25 sign types provided. It loads on first use and can take time on Safari. Semantic inference is throttled to roughly 3.5/6/10 seconds, **not** video-frame-rate recognition. The result scores are *relative similarities*, not calibrated confidence.
+- **Record capture:** continuous recognition can create provisional inventory records. Automatic duplicate throttling reduces repeated detection of the same class at nearby phone locations within 15 minutes (or 45 seconds if neither record has GPS). Choose to turn off automatic saving and accept the suggested sign manually.
+- **GPS survey:** opt-in geolocation with accuracy reading and freshness check. The saved GPS point is the **phone location**, not the signpost. Correct the real signpost position by typing precise lat/lon or tapping the map. Photo uploads deliberately do not inherit the current location.
+- **Review workflow:** mark records as reviewed only after assigning coordinates, edit sign type, road/landmark, sign condition, pole condition, notes, delete individual observations; statistics and review statuses update.
+- **Sign map:** Leaflet/OpenStreetMap pins, visual review status legend and **keyboard-friendly, screen-reader-readable list alternative**. The map itself needs network access to load the external library/tiles.
+- **GIS exports:** GeoJSON including unlocated records with `geometry:null`, CSV with BOM for Excel, or KML for located signs (Google Earth/QGIS). GeoJSON uses WGS84 `[longitude, latitude]`.
+- **Mobile PWA:** Add to Home Screen, responsive desktop/mobile layout, service-worker app-shell caching, automatic camera shutdown when backgrounded, localized English/Arabic, and migration of v2 browser records.
+- **Privacy:** no account and no application-owned server; camera pixels and inference run locally once the model downloads; records live in browser `localStorage` (capped at 650 entries). Third-party AI/CDN requests and OSM tile requests are used. No sign photos are retained with records. Export frequently; clearing browser site storage removes data.
 
-## Deploy to GitHub Pages
+## Publish through GitHub Pages
 
-1. Create a public repository, such as `road-sign-lens`.
-2. Upload all files from the *root of this ZIP* to the root of the default `main` branch (`index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, and the two PNG icons). **Do not upload just the ZIP.**
-3. Repository → Settings → Pages → Deploy from branch → `main` / `(root)` → Save.
-4. Open `https://YOUR_USERNAME.github.io/road-sign-lens/` in Safari and authorize **Camera** and optionally **Location**. You can use Share → Add to Home Screen.
+1. Download the ZIP and **extract** it. Do not upload the ZIP itself to the GitHub repository.
+2. Create a public GitHub repository, such as `road-sign-lens`.
+3. Upload the files from this package root into the repository root (`index.html`, JS files, CSS, icons, manifest, service worker, etc.).
+4. In **Settings → Pages**, select **Deploy from a branch** → `main` → `/ (root)`, then Save.
+5. Wait for deployment; open `https://YOUR_USERNAME.github.io/road-sign-lens/` in **Safari** on an iPhone.
+6. Allow the camera. For GPS survey records, enable GPS and allow Precise Location. Use **Share → Add to Home Screen** if desired.
 
-## Deploy to Vercel
+Secure `https://` (or `localhost` during development) is required for Safari camera/geolocation access.
 
-Upload this directory to a GitHub repository, import that repository into Vercel, and deploy the static site. Framework preset: Other; no build command; output directory: root. Or use another HTTPS-capable static host.
+## Model and technical limits
 
-## Privacy and accuracy notes
+The present classifier is *not* a detector trained specifically for Omani road scenes. The color region proposal fails for some uncolored/low-contrast/distant signs; other colored objects can create false proposals. Speed-limit digits are not OCR-verified. It cannot measure the physical signpost location or orientation from a single camera/GPS reading. A low score must not be interpreted as confidence or used for regulatory enforcement.
 
-- Camera and geolocation APIs require a secure HTTPS context (or localhost). Photo recognition and GPS collection stay in the browser; no dedicated recognition backend receives the sign photos.
-- The AI model and WASM components download from remote services when first used, and Leaflet and tiles load from public CDN/OpenStreetMap services. Those providers will receive ordinary network requests, including map tile requests corresponding to the map area displayed.
-- **Location is an observation from the phone, not the actual sign's coordinates**. GPS accuracy may be poor, particularly in vehicles or near buildings; manually correct the pin if needed. All records are unverified until reviewed.
-- **Uploaded photos are not automatically geotagged**, as the current phone location may differ from where the photo was taken. Add or correct a pin manually in Map.
-- Sign matches are experimental relative similarity classifications, **not verified confidence probabilities**. The system cannot reliably OCR speed numbers, detect every road sign in a scene, or guarantee Omani sign support. Do not use while driving or for road safety decisions.
-- The site's local storage is per browser/device and is **not synchronized to GitHub**; export data regularly if needed.
-- OpenStreetMap tile data © contributors, ODbL; attribution appears in the map. Avoid heavy automated tile downloads.
+**To move to production:** collect and label representative Omani signs; train and validate a dedicated multi-class **object detection** model (e.g. YOLO optimized to ONNX/Core ML, subject to licensing) with an evaluation set containing day/night/glare/occlusion; calibrate precision/recall, hard negatives, and confidence thresholds; implement frame-to-frame object IDs with optical-flow or object tracking; support measured signpost positions via surveyed GNSS or multi-view triangulation; build encrypted role-based synchronization/audit logs, admin moderation and secure evidence storage; perform real-device battery, heat, GPS and WCAG 2.2 AA audits.
 
-## Source files
+Do **not** hold or operate the device while driving. Survey only while stopped or when safely operated by a passenger/field worker.
 
-- `index.html`: static layout and interface
-- `styles.css`: responsive styling
-- `app.js`: classification, GPS, map, and exports
-- `manifest.webmanifest`: Add-to-Home-Screen metadata
-- `icon-192.png`, `icon-512.png`: site icons
+## Accessibility (W3C / WCAG)
+
+**Target: WCAG 2.2 AA. Not a certification.** Current design includes semantic landmark regions, skip to content, descriptive visible labels, focus indicators, approximately 44px touch controls, Arabic RTL, ARIA live status alerts, high contrast toggle, text enlargement, reduced motion, native dialog editing, status labels beyond color, keyboard accessible list-based map alternative and manual coordinates when map is inaccessible. Independent automated and manual WCAG/VoiceOver/keyboard testing still required.
+
+## Structure
+
+| File | Responsibility |
+|---|---|
+| `index.html` | Accessible five-section UI and edit form |
+| `styles.css` | Desktop/mobile layout, contrast and motion preferences |
+| `signs.js` | Bilingual traffic sign metadata/prompts |
+| `detector.js` | Browser-friendly sign-shaped region proposal, geo distance/dedup, GeoJSON |
+| `app.js` | Cameras, AI classification, GPS, maps, storage, reviews, exports, localization |
+| `sw.js` | Offline app-shell cache (not offline AI/map tiles) |
+| `manifest.webmanifest` and icons | Installable PWA |
+| `tests/detector.test.mjs` | Small automated unit test suite |
+
+Use `python -m http.server 8080` and open `http://localhost:8080` on a development computer. Or run `npm test` (Node 20+) for pure detector unit tests. Actual iPhone testing needs HTTPS.
+
+Attributions: © OpenStreetMap contributors; Leaflet MIT license; Transformers.js/Hugging Face model subject to their respective terms and licenses.
