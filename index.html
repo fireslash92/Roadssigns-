@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#081723" />
+  <meta name="description" content="Road Sign Lens — bilingual camera-based road sign recognition prototype." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sign Lens" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Road Sign Lens • Camera Recognition</title>
+</head>
+<body>
+ <div class="app-shell">
+  <header class="masthead">
+    <div class="brand"><div class="brand-mark" aria-hidden="true"><span>⬡</span><b>↗</b></div><div><strong>ROAD SIGN <em>LENS</em></strong><small>VISUAL TRAFFIC SIGN ASSISTANT</small></div></div>
+    <button id="languageBtn" class="language-btn" type="button" aria-label="Switch language"><span id="languageText">العربية</span> <span aria-hidden="true">⇄</span></button>
+  </header>
+  <main>
+   <section id="scanView" class="view active" aria-labelledby="scanTitle">
+    <div class="hero-copy"><div class="eyebrow"><span class="dot"></span><span data-en="CAMERA-POWERED RECOGNITION" data-ar="التعرّف على اللوحات بالكاميرا">CAMERA-POWERED RECOGNITION</span></div><h1 id="scanTitle" data-en="Understand the <span>signs ahead.</span>" data-ar="تعرّف على <span>اللوحات المرورية.</span>">Understand the <span>signs ahead.</span></h1><p data-en="Point your camera at one road sign, or upload a photo. Get a suggested meaning in seconds after the AI model is ready." data-ar="وجّه الكاميرا نحو لوحة مرورية واحدة، أو ارفع صورة، لتحصل على معنى مقترح بعد تحميل نموذج الذكاء الاصطناعي.">Point your camera at one road sign, or upload a photo. Get a suggested meaning in seconds after the AI model is ready.</p></div>
+    <div class="workspace">
+     <div class="camera-card">
+      <div class="card-heading"><div><div class="section-kicker" data-en="LIVE VIEW" data-ar="البث المباشر">LIVE VIEW</div><h2 data-en="Camera scanner" data-ar="ماسح الكاميرا">Camera scanner</h2></div><div id="cameraStatus" class="status-pill"><span></span><b id="cameraStatusText">Camera off</b></div></div>
+      <div class="viewfinder" id="viewfinder">
+        <video id="video" autoplay muted playsinline aria-label="Camera preview"></video>
+        <img id="photoPreview" alt="Photo to analyze" hidden />
+        <div id="placeholder" class="placeholder"><div class="placeholder-icon">⌗</div><h3 data-en="Your viewfinder is ready" data-ar="الكاميرا جاهزة للتشغيل">Your viewfinder is ready</h3><p data-en="Start the camera or choose a road sign photo" data-ar="شغّل الكاميرا أو اختر صورة لوحة مرورية">Start the camera or choose a road sign photo</p></div>
+        <div class="focus-frame" id="focusFrame" aria-hidden="true"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><div class="focus-label" data-en="PLACE ONE SIGN HERE" data-ar="ضع لوحة واحدة هنا">PLACE ONE SIGN HERE</div></div>
+        <div class="finder-top" id="finderTop"><span class="rec-circle"></span><span id="finderTopText">CENTER-FOCUS MODE</span></div>
+        <div class="finder-bottom"><span data-en="For stationary use only" data-ar="للاستخدام أثناء التوقف فقط">For stationary use only</span><span>AI · BETA</span></div>
+      </div>
+      <div class="camera-actions"><button id="startCamera" type="button" class="btn btn-secondary"><span class="btn-ico">◉</span><span data-en="Start camera" data-ar="تشغيل الكاميرا">Start camera</span></button><button id="uploadBtn" type="button" class="btn btn-secondary"><span class="btn-ico">↥</span><span data-en="Upload photo" data-ar="رفع صورة">Upload photo</span></button><input id="fileInput" type="file" accept="image/*" hidden /></div>
+      <button id="analyzeBtn" type="button" class="btn btn-primary" disabled><span>✧</span><span data-en="Identify road sign" data-ar="التعرّف على اللوحة">Identify road sign</span><span class="arrow">↗</span></button>
+      <div class="auto-row"><label class="toggle-label" for="autoScan"><span data-en="Continuous scan" data-ar="المسح المستمر">Continuous scan</span><small data-en="Analyze about every 5 seconds" data-ar="تحليل كل ٥ ثوانٍ تقريبًا">Analyze about every 5 seconds</small></label><input id="autoScan" class="switch" type="checkbox" disabled /></div>
+      <p class="help-text" data-en="Tip: Fill most of the dotted square with a single sign. Camera permission requires HTTPS (or localhost)." data-ar="نصيحة: ضع لوحة واحدة بوضوح داخل المربع. تتطلب الكاميرا اتصال HTTPS (أو localhost).">Tip: Fill most of the dotted square with a single sign. Camera permission requires HTTPS (or localhost).</p>
+     </div>
+     <aside class="insights-column">
+      <div class="result-card" id="resultCard" aria-live="polite">
+        <div class="section-kicker" data-en="AI ANALYSIS" data-ar="تحليل الذكاء الاصطناعي">AI ANALYSIS</div>
+        <div id="emptyResult" class="empty-result"><div class="result-orbit"><span>◎</span></div><h2 data-en="Ready when you are" data-ar="جاهز لتحليل اللوحة">Ready when you are</h2><p data-en="Your sign identification and explanation will appear here." data-ar="ستظهر هنا اللوحة المرورية المقترحة وشرح معناها.">Your sign identification and explanation will appear here.</p></div>
+        <div id="loadingResult" class="loading-result" hidden><div class="spinner"></div><h2 id="loadingTitle">Preparing recognition…</h2><p id="loadingDesc">The AI model may take a few minutes to download the first time on mobile data.</p><div class="progress-track"><div id="progressFill"></div></div><small id="progressText"></small></div>
+        <div id="actualResult" class="actual-result" hidden><div id="trustBanner" class="trust-banner">Suggested match — verify visually</div><div class="sign-identity"><div class="sign-emoji" id="signEmoji">🛑</div><div><h2 id="resultName">Stop</h2><div class="result-subtitle" id="resultSubtitle">قف</div></div></div><p id="resultMeaning"></p><div class="action-note"><span>↗</span><p id="resultAction"></p></div><div class="subheading" id="alternativesTitle">Other possible matches</div><div id="alternatives"></div><small class="result-disclaimer" id="resultDisclaimer">AI similarity scores are relative to the available categories, not calibrated probabilities.</small></div>
+        <div id="errorResult" class="error-result" hidden><div class="error-symbol">!</div><h2 id="errorTitle">Recognition unavailable</h2><p id="errorText"></p><button id="retryBtn" type="button" class="btn btn-small btn-secondary" data-en="Try again" data-ar="إعادة المحاولة">Try again</button></div>
+      </div>
+      <div class="info-card"><div class="info-icon">✳</div><div><strong data-en="Built for learning, not driving" data-ar="للتعلم وليس للاستخدام أثناء القيادة">Built for learning, not driving</strong><p data-en="Experimental recognition of common international road signs. Oman-specific designs and numeric speed limits require local training and validation. Always follow real road signs." data-ar="التعرّف تجريبي للوحات الدولية الشائعة. تحتاج لوحات عُمان وأرقام السرعات إلى تدريب واختبارات محلية. التزم دائمًا باللوحات الفعلية.">Experimental recognition of common international road signs. Oman-specific designs and numeric speed limits require local training and validation. Always follow real road signs.</p></div></div>
+     </aside>
+    </div>
+   </section>
+   <section id="libraryView" class="view" aria-labelledby="libraryTitle"><div class="page-intro"><div class="eyebrow"><span class="dot"></span><span data-en="TRAFFIC SIGN GUIDE" data-ar="دليل اللوحات المرورية">TRAFFIC SIGN GUIDE</span></div><h1 id="libraryTitle" data-en="Learn the <span>road language.</span>" data-ar="تعرّف على <span>لغة الطريق.</span>">Learn the <span>road language.</span></h1><p data-en="Browse the example sign categories considered by the recognition model." data-ar="تصفح فئات اللوحات المرورية التي يقارنها نموذج التعرف.">Browse the example sign categories considered by the recognition model.</p></div><div class="search-wrap"><span>⌕</span><input id="signSearch" type="search" placeholder="Search signs..." aria-label="Search signs" /></div><div id="signGrid" class="sign-grid"></div></section>
+   <section id="historyView" class="view" aria-labelledby="historyTitle"><div class="page-intro"><div class="eyebrow"><span class="dot"></span><span data-en="SAVED ON THIS DEVICE" data-ar="محفوظ على هذا الجهاز">SAVED ON THIS DEVICE</span></div><h1 id="historyTitle" data-en="Your <span>scan history.</span>" data-ar="سجل <span>عمليات المسح.</span>">Your <span>scan history.</span></h1><p data-en="Recent suggested matches are saved only in this browser. Clearing website data also clears this list." data-ar="تُحفظ آخر النتائج المقترحة في هذا المتصفح فقط. يؤدي مسح بيانات الموقع إلى حذفها.">Recent suggested matches are saved only in this browser. Clearing website data also clears this list.</p></div><div class="history-bar"><span id="historyCount">0 scans</span><button id="clearHistory" type="button" class="text-btn" data-en="Clear history" data-ar="مسح السجل">Clear history</button></div><div id="historyList" class="history-list"></div></section>
+  </main>
+  <nav class="bottom-nav" aria-label="App sections"><button type="button" class="nav-link selected" data-view="scan" aria-current="page"><span class="nav-icon">⌗</span><span data-en="Scan" data-ar="مسح">Scan</span></button><button type="button" class="nav-link" data-view="library"><span class="nav-icon">▦</span><span data-en="Sign guide" data-ar="دليل اللوحات">Sign guide</span></button><button type="button" class="nav-link" data-view="history"><span class="nav-icon">◷</span><span data-en="History" data-ar="السجل">History</span></button></nav>
+  <footer><span>ROAD SIGN LENS</span><span data-en="Experimental · No photos sent to a prediction server" data-ar="تجريبي · لا تُرسل الصور إلى خادم للتحليل">Experimental · No photos sent to a prediction server</span></footer>
+ </div>
+ <canvas id="captureCanvas" width="420" height="420" hidden></canvas>
+ <script type="module" src="app.js"></script>
+</body>
+</html>
