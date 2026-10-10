@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101f32">
-<meta name="description" content="Road Sign Lens Pro 3.2 — mobile field survey for locating and reviewing roadside traffic signs.">
+<meta name="description" content="Road Sign Lens Pro 3.3 — mobile field survey for locating and reviewing roadside traffic signs.">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Sign Lens Pro">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoaklp9xA9JZyTc=" crossorigin="">
@@ -233,7 +233,7 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
 #modelChip[role=status]{max-width:54%;text-align:right;white-space:normal}
 @media(max-width:380px){.ai-load-controls .btn{font-size:.73rem;padding:6px 9px}.ai-load-controls .badge{font-size:.65rem}}
 </style>
-<title>Road Sign Lens Pro 3.2 | Field Survey</title>
+<title>Road Sign Lens Pro 3.3 | Field Survey</title>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -251,7 +251,7 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
   <div class="sidebar-bottom"><div class="sidebar-status"><span class="status-led" id="sidebarLed"></span><span id="sidebarStatus">Survey ready</span></div><p data-en="For stationary surveys only. Never operate while driving." data-ar="للمسح أثناء التوقف فقط. لا تستخدم التطبيق أثناء القيادة.">For stationary surveys only. Never operate while driving.</p></div>
 </aside>
 <div class="main-shell">
-<header class="topbar"><div class="breadcrumbs"><span data-en="ROAD SIGN LENS · v3.1" data-ar="العمليات الميدانية">ROAD SIGN LENS · v3.1</span><span aria-hidden="true">/</span><strong id="headerLocation" data-en="Live survey" data-ar="المسح المباشر">Live survey</strong></div><div class="header-actions"><span id="syncBadge" class="badge soft" data-en="Private · On-device" data-ar="خاص · على الجهاز">Private · On-device</span><button id="langBtn" type="button" class="icon-text-btn" aria-label="Switch language">العربية</button><button id="accessBtn" type="button" class="access-btn" aria-label="Toggle high contrast" title="High contrast">◐</button></div></header>
+<header class="topbar"><div class="breadcrumbs"><span data-en="ROAD SIGN LENS · v3.3" data-ar="العمليات الميدانية">ROAD SIGN LENS · v3.3</span><span aria-hidden="true">/</span><strong id="headerLocation" data-en="Live survey" data-ar="المسح المباشر">Live survey</strong></div><div class="header-actions"><span id="syncBadge" class="badge soft" data-en="Private · On-device" data-ar="خاص · على الجهاز">Private · On-device</span><button id="langBtn" type="button" class="icon-text-btn" aria-label="Switch language">العربية</button><button id="accessBtn" type="button" class="access-btn" aria-label="Toggle high contrast" title="High contrast">◐</button></div></header>
 <main id="main" tabindex="-1">
 <section class="page active" id="surveyPage" aria-labelledby="surveyTitle">
  <div class="page-head"><div><div class="eyebrow"><span class="line"></span><span data-en="ROAD ASSET INTELLIGENCE" data-ar="البيانات الذكية لأصول الطرق">ROAD ASSET INTELLIGENCE</span></div><h1 id="surveyTitle" data-en="Scan signs. <em>Map roads.</em>" data-ar="ارصد اللوحة. <em>حدّد موقعها.</em>">Scan signs. <em>Map roads.</em></h1><p data-en="Use your camera to find traffic signs and build a mapped, reviewable roadside inventory." data-ar="مسح ميداني يحدد الأشكال المحتملة للوحات بالكاميرا، ويقترح نوعها، ويحفظ سجلات قابلة للمراجعة على الخريطة.">Use your camera to find traffic signs and build a mapped, reviewable roadside inventory.</p></div><div class="head-actions"><button class="btn btn-outline" id="newManualBtn" type="button"><span aria-hidden="true">＋</span><span data-en="Add manually" data-ar="إضافة يدوية">Add manually</span></button></div></div>
@@ -272,7 +272,7 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
  </div>
  <div class="right-stack"><div class="panel status-panel"><div class="panel-head"><div><span class="kicker" data-en="FIELD SENSORS" data-ar="الحساسات الميدانية">FIELD SENSORS</span><h2 data-en="Survey readiness" data-ar="جاهزية المسح">Survey readiness</h2></div><span class="tiny-dot" aria-hidden="true">●</span></div>
   <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">⌖</span><div><strong data-en="GPS positioning" data-ar="تحديد الموقع">GPS positioning</strong><small id="gpsDetail">Off · GPS not collecting</small></div></div><button id="gpsBtn" type="button" class="btn tiny-btn" aria-pressed="false">Enable</button></div>
-  <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">✧</span><div><strong data-en="On-device AI" data-ar="الذكاء الاصطناعي المحلي">On-device AI</strong><small id="aiDetail" aria-live="polite">Not downloaded yet · tap Prepare AI, or start the camera</small></div></div><div class="ai-load-controls"><span class="badge" id="aiState">Standby</span><button class="btn btn-outline" id="prepareAiBtn" type="button">Prepare AI</button></div></div>
+  <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">✧</span><div><strong data-en="On-device AI" data-ar="الذكاء الاصطناعي المحلي">On-device AI</strong><small id="aiDetail" aria-live="polite">Not downloaded yet · tap Prepare AI, or start the camera</small></div></div><div class="ai-load-controls"><span class="badge" id="aiState">Standby</span><button class="btn btn-outline" id="prepareAiBtn" type="button">Prepare AI</button><button class="btn btn-outline" id="aiDiagnosticsBtn" type="button" hidden aria-label="Copy AI error diagnostics">Copy details</button></div></div>
   <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">◇</span><div><strong data-en="Device storage" data-ar="التخزين على الجهاز">Device storage</strong><small data-en="Saved only in this browser" data-ar="محفوظ في هذا المتصفح فقط">Saved only in this browser</small></div></div><span class="badge okay" data-en="Local" data-ar="محلي">Local</span></div>
   <div class="progress" id="modelProgress" hidden><div><span id="modelProgressText">Downloading AI model…</span><span id="modelProgressPct">0%</span></div><div class="progress-track"><i id="progressBar"></i></div></div>
  </div>
