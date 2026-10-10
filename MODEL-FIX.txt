@@ -1,0 +1,2 @@
+Road Sign Lens v3.8: separate text_model_quantized.onnx and vision_model.onnx; no generic model_quantized.onnx.
+No GitHub Actions needed.
