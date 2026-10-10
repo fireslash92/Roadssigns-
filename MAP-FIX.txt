@@ -1,1 +1,1 @@
-v3.9 map layout repair. No AI model or detection code modified. Upload all extracted files to repository root (branch deployment). Map tiles still require internet. Preserve browser storage.
+v4.0: Embeds critical Leaflet positioning and tile styles in index.html. No GitHub Actions. AI untouched. Replace all root files.
