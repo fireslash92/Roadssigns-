@@ -1,0 +1,7 @@
+Road Sign Lens v3.6 direct-upload fix
+
+Changed AI model precision from q8 to int8 to request the published *_int8.onnx files. This is a targeted attempt for the missing model file error, NOT confirmed on iPhone Safari.
+
+Upload all files, select GitHub Pages Deploy from a branch, main / root. No GitHub Actions. Export existing sign data before changing browser site data.
+
+If still failing, use Copy Details in the app and send the full missing URL: the exact path matters.

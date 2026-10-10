@@ -6,7 +6,7 @@ const defaults={language:'en',contrast:false,largeText:false,reduceMotion:false,
 function loadPrefs(){try{return {...defaults,...JSON.parse(localStorage.getItem(STORAGE+'-prefs')||'{}')};}catch{return {...defaults};}}
 let aiStatus='standby', aiError='', aiLastFailure=0, aiPhase='idle', aiLastException='';
 // Static GitHub Pages edition. No package manager, build tooling, or GitHub Actions required.
-// The AI module and model still download at runtime from their respective services.
+// AI model and ESM still download at runtime. int8 matches existing ONNX file names.
 const AI_MODULE_SOURCES = [
   'https://esm.sh/@huggingface/transformers@3.8.1?bundle&target=es2020',
   'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1',
@@ -42,7 +42,7 @@ function describeAIError(error){
   return ui('AI initialization failed. You can still record sign locations manually.','فشل بدء الذكاء الاصطناعي. ما زال بإمكانك تسجيل اللوحات يدويًا.');
 }
 function aiDiagnostics(){
-  return ['Road Sign Lens Pro v3.5','build: branch static (no Actions)', 'AI module source: '+(aiSource||'none'),'import attempts: '+(aiImportFailures.length?aiImportFailures.join(' | '):'none'),'stage: '+aiPhase,'status: '+aiStatus,'browser: '+navigator.userAgent,'online: '+navigator.onLine,'site: '+location.origin+location.pathname,'error: '+(aiLastException||'none')].join('\n');
+  return ['Road Sign Lens Pro v3.6','build: direct upload, int8 model' , 'AI module source: '+(aiSource||'none'),'import attempts: '+(aiImportFailures.length?aiImportFailures.join(' | '):'none'),'stage: '+aiPhase,'status: '+aiStatus,'browser: '+navigator.userAgent,'online: '+navigator.onLine,'site: '+location.origin+location.pathname,'error: '+(aiLastException||'none')].join('\n');
 }
 function syncAI(){
   const states={
@@ -128,7 +128,7 @@ async function ensureModel(){
     if(env.backends?.onnx?.wasm)env.backends.onnx.wasm.numThreads=1;
     aiPhase='model';
     $('modelProgressText').textContent=ui('Downloading sign recognition model…','جارٍ تحميل نموذج التعرف على اللوحات…');
-    return pipeline('zero-shot-image-classification','Xenova/mobileclip_s0',{device:'wasm',dtype:'q8',progress_callback:progressReport});
+    return pipeline('zero-shot-image-classification','Xenova/mobileclip_s0',{device:'wasm',dtype:'int8',progress_callback:progressReport});
   })();
   try{
     model=await modelPromise;
