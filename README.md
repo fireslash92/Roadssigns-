@@ -1,54 +1,42 @@
-# Road Sign Lens — prototype v1.0
+# Road Sign Lens v2 — camera recognition + GPS mapping
 
-Mobile-first English/Arabic Progressive Web App (PWA) for *experimental* recognition of traffic signs with the phone camera or a photo.
+A mobile-first bilingual English/Arabic static web application. It identifies a **single centered sign** using the experimental `Xenova/mobileclip_s0` zero-shot image classifier via Transformers.js, then optionally logs the phone's location at the time of a camera scan.
 
-## Features
-- Rear-phone-camera viewfinder with focus square and manual capture
-- Continuous scan option (approximately every 5 seconds, only when page active)
-- Upload a road sign image from gallery; on-device resizing/cropping
-- English/Arabic interface and road sign meanings
-- Road sign guide (25 common categories) and local scan history
-- Installs on iPhone Home Screen once served from an HTTPS website
-- No account, API key, backend prediction service, or photo upload needed
+## New in v2
 
-## Important limitations
-- **Prototype / learning only. Do not use while driving or for navigation.** A passenger may use it only when safe; ideally inspect signs when stationary.
-- It classifies the **center crop of one sign**. It does not find or box traffic signs anywhere in a complex road scene.
-- Uses **MobileCLIP S0** zero-shot image-text matching; not fine-tuned for Oman road signs. Incorrect matches are possible even when a top result appears clear.
-- Similarity scores are *not calibrated confidence probabilities*. The app intentionally omits numeric percentages.
-- It cannot reliably read speed limit digits, damaged signs, Arabic sign text, or unusual Oman-specific signs. Always read the actual sign.
-- The first AI download requires internet, a CDN, and Hugging Face model access. Downloads may be tens of megabytes and run slowly or fail on memory-limited devices. Later loading may be cached by browser but full offline AI use is not guaranteed.
-- Browser camera access requires **HTTPS** (or local `localhost`); opening `index.html` directly as a file may allow photo upload but not the camera.
-- Photos are converted and analyzed locally by browser JavaScript / ONNX Runtime. The app does not send photos to a prediction server. The browser requests scripts/model weights from CDN/Hugging Face.
+- **Map** tab using Leaflet 1.9.4 and © OpenStreetMap map tiles. A detected sign with GPS is shown as a map pin.
+- **GPS tagging** opt-in: tap **Enable GPS tagging** under the camera. Grant Safari's precise location permission for best results. The app records the *phone's GPS location*, not the surveyed position of the road sign.
+- **Manual correction**: Map → choose a scan → Adjust on map → tap where the sign actually stands. You can add positions to photos and scans recorded without GPS.
+- **GPS accuracy** displayed in metres when provided by the device.
+- **GeoJSON, CSV, KML** export of mapped observations, usable in mapping/GIS applications, including QGIS and Google Earth. GeoJSON follows longitude/latitude ordering.
+- **Persistent scan records** in this browser's `localStorage` (up to 500). No cloud database. Clearing browser site data deletes history and map pins.
+- **De-duplication** when continuous scanning sees the same sign type within ~35 m in a 90-second window. Manual scanning saves each observation.
 
-## Quick testing on a computer
+## Deploy to GitHub Pages
 
-From the folder with `index.html`:
+1. Create a public repository, such as `road-sign-lens`.
+2. Upload all files from the *root of this ZIP* to the root of the default `main` branch (`index.html`, `app.js`, `styles.css`, `manifest.webmanifest`, and the two PNG icons). **Do not upload just the ZIP.**
+3. Repository → Settings → Pages → Deploy from branch → `main` / `(root)` → Save.
+4. Open `https://YOUR_USERNAME.github.io/road-sign-lens/` in Safari and authorize **Camera** and optionally **Location**. You can use Share → Add to Home Screen.
 
-```bash
-python3 -m http.server 8000
-```
+## Deploy to Vercel
 
-Go to `http://localhost:8000` in a web browser. Choose `Upload photo` and `Identify road sign`, or test your webcam. Needs internet on initial AI download.
+Upload this directory to a GitHub repository, import that repository into Vercel, and deploy the static site. Framework preset: Other; no build command; output directory: root. Or use another HTTPS-capable static host.
 
-## Put it on an iPhone
+## Privacy and accuracy notes
 
-1. Deploy all files to any static website hosting that gives **HTTPS** (for example Netlify Drop, GitHub Pages, or Cloudflare Pages). Do not publish only `index.html`: CSS, JavaScript, icon files, and manifest must also be included.
-2. Open the resulting HTTPS URL in iPhone Safari.
-3. Tap **Start camera**, allow camera permission, and center a large, clearly visible sign in the target box.
-4. Tap **Identify road sign** (first use downloads the AI model). Optionally enable Continuous scan after the model has loaded.
-5. To install as an app: Safari Share > Add to Home Screen > Add.
+- Camera and geolocation APIs require a secure HTTPS context (or localhost). Photo recognition and GPS collection stay in the browser; no dedicated recognition backend receives the sign photos.
+- The AI model and WASM components download from remote services when first used, and Leaflet and tiles load from public CDN/OpenStreetMap services. Those providers will receive ordinary network requests, including map tile requests corresponding to the map area displayed.
+- **Location is an observation from the phone, not the actual sign's coordinates**. GPS accuracy may be poor, particularly in vehicles or near buildings; manually correct the pin if needed. All records are unverified until reviewed.
+- **Uploaded photos are not automatically geotagged**, as the current phone location may differ from where the photo was taken. Add or correct a pin manually in Map.
+- Sign matches are experimental relative similarity classifications, **not verified confidence probabilities**. The system cannot reliably OCR speed numbers, detect every road sign in a scene, or guarantee Omani sign support. Do not use while driving or for road safety decisions.
+- The site's local storage is per browser/device and is **not synchronized to GitHub**; export data regularly if needed.
+- OpenStreetMap tile data © contributors, ODbL; attribution appears in the map. Avoid heavy automated tile downloads.
 
-## Main files
-- `index.html` — web layout and controls
-- `styles.css` — responsive dark dashboard design
-- `app.js` — browser camera, bilingual UI, image preprocessing, model inference, history
-- `manifest.webmanifest` + icons — Home Screen installation
+## Source files
 
-## Technology / attribution
-- Transformers.js (`@huggingface/transformers` v3.8.1): https://huggingface.co/docs/transformers.js/
-- Model: Xenova/mobileclip_s0: https://huggingface.co/Xenova/mobileclip_s0 (view original model license before redistribution/commercial use)
-- No external signs dataset is bundled. Examples and meanings written for this prototype; local regulations take precedence.
-
-## Production version / Oman deployment
-Recommended next step: train/finetune an Oman-specific sign classification model (and optionally a separate object detection model) using permissioned local image data; independently evaluate per-sign precision/recall under realistic lighting, distance, motion blur, and bilingual signs. Add speed number OCR with verification and native iOS app packaging.
+- `index.html`: static layout and interface
+- `styles.css`: responsive styling
+- `app.js`: classification, GPS, map, and exports
+- `manifest.webmanifest`: Add-to-Home-Screen metadata
+- `icon-192.png`, `icon-512.png`: site icons

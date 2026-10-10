@@ -1,7 +1,7 @@
 {
  "name":"Road Sign Lens — Traffic Sign Recognition",
  "short_name":"Sign Lens",
- "description":"Bilingual, camera-based road sign recognition prototype",
+ "description":"Bilingual, camera-based road sign recognition and GPS map logging prototype",
  "start_url":"./index.html",
  "scope":"./",
  "display":"standalone",

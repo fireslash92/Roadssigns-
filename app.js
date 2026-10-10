@@ -52,7 +52,8 @@ function updateLanguage(){
  });
  $('signSearch').placeholder=ui('Search signs...','ابحث عن لوحة مرورية...');
  document.title=ui('Road Sign Lens • Camera Recognition','عدسة اللوحات المرورية • التعرف بالكاميرا');
- updateCameraButton();setCameraStatus(cameraOn);renderLibrary();renderHistory();
+ updateCameraButton();setCameraStatus(cameraOn);renderLibrary();renderHistory();updateGPSStatus();
+ if(activeView==='map')renderMapRecords();
  if(latest)renderPrediction(latest);
  if(el.error.hidden===false && !lastError) showResult(el.empty);
 }
@@ -136,7 +137,8 @@ let lastError='';
 function displayError(title,message){lastError=message;showResult(el.error);$('errorTitle').textContent=title;$('errorText').textContent=message;}
 async function analyze({automatic=false}={}){
  if(busy||(!cameraOn&&!photoData))return;
- busy=true;el.analyze.disabled=true;el.auto.disabled=true;showResult(el.loading);$('loadingTitle').textContent=ui('Analyzing the sign…','جارٍ تحليل اللوحة...');$('loadingDesc').textContent=ui('Comparing the center of the image with known road sign descriptions.','مقارنة مركز الصورة بأوصاف اللوحات المرورية المعروفة.');
+ busy=true;el.analyze.disabled=true;el.auto.disabled=true;showResult(el.loading);$('savedLocation').hidden=true;
+ const geoCapturePromise=fixForCameraScan();$('loadingTitle').textContent=ui('Analyzing the sign…','جارٍ تحليل اللوحة...');$('loadingDesc').textContent=ui('Comparing the center of the image with known road sign descriptions.','مقارنة مركز الصورة بأوصاف اللوحات المرورية المعروفة.');
  try{
   const img=frameImage();
   const pipe=await ensureModel();
@@ -150,8 +152,14 @@ async function analyze({automatic=false}={}){
   const accepted=!!first.sign&&first.score>=.11&&(first.score-runner.score>=.014||first.score>=.28);
   latest={accepted,first,scored:scored.filter(s=>s.sign).slice(0,4),image:img,when:new Date().toISOString()};
   renderPrediction(latest);
-  if(accepted&&(!automatic||lastAutoId!==first.sign.id||Date.now()-lastAutoTime>30000)){
-   saveHistory({id:first.sign.id,at:latest.when,score:first.score});lastAutoId=first.sign.id;lastAutoTime=Date.now();
+  if(accepted){
+   const location=await geoCapturePromise;
+   const item={uid:newUID(),id:first.sign.id,at:latest.when,score:first.score,loc:location};
+   const saved=saveIdentifiedSign(item,automatic);
+   if(saved){
+    const notice=$('savedLocation');notice.hidden=false;
+    notice.textContent=location?ui(`✓ Pin saved at PHONE location: ${fmtCoords(location)} (±${location.accuracy??'?'} m). Open Map to verify or correct it.`,`✓ تم حفظ العلامة عند موقع الهاتف: ${fmtCoords(location)} (±${location.accuracy??'؟'} متر). افتح الخريطة للتحقق أو التصحيح.`):ui(photoData?'Scan saved without GPS. Open Map to set the photo sign location.':'Scan saved without GPS. Enable GPS tagging or place a pin manually in Map.',photoData?'تم حفظ النتيجة بدون GPS. افتح الخريطة وحدد الموقع.':'تم حفظ النتيجة بدون GPS. فعّل GPS أو حدد الموقع يدويًا في الخريطة.');
+   }
   }
  }catch(err){console.error('Recognition failure:',err);displayError(ui('Recognition unavailable','تعذّر تشغيل التعرّف'),ui('Check your internet connection, free memory, and model download permissions. You can still browse the sign guide. Technical detail: ','تحقق من اتصال الإنترنت ومساحة الذاكرة وإمكانية تنزيل النموذج. يمكنك استعراض دليل اللوحات. التفاصيل: ')+(err?.message||String(err)));}
  finally{busy=false;setSourceVisibility();}
@@ -184,8 +192,8 @@ function renderLibrary(){
  }));
  if(!filtered.length){const x=document.createElement('div');x.className='history-blank';x.textContent=ui('No signs found.','لا توجد لوحات مطابقة.');$('signGrid').append(x);}
 }
-function getHistory(){try{return JSON.parse(localStorage.getItem('roadSignLensHistory')||'[]');}catch{return [];}}
-function saveHistory(item){try{const all=getHistory();all.unshift(item);localStorage.setItem('roadSignLensHistory',JSON.stringify(all.slice(0,20)));renderHistory();}catch(err){console.warn('History not saved:',err);}}
+function getHistory(){try{const data=JSON.parse(localStorage.getItem('roadSignLensHistory')||'[]');return Array.isArray(data)?data.map((r,i)=>({...r,uid:r.uid||`${r.id}-${r.at}-${i}`})):[];}catch{return [];}}
+function saveHistory(item){try{const all=getHistory();all.unshift(item);localStorage.setItem('roadSignLensHistory',JSON.stringify(all.slice(0,500)));renderHistory();renderMapRecords();}catch(err){console.warn('History not saved:',err);}}
 function renderHistory(){
  const all=getHistory();$('historyCount').textContent=lang==='ar'?`${all.length} عملية مسح`: `${all.length} scans`;
  $('historyList').replaceChildren(...all.map(item=>{
@@ -193,7 +201,11 @@ function renderHistory(){
   const row=document.createElement('article');row.className='history-entry';const symbol=document.createElement('div');symbol.className='history-symbol';symbol.textContent=s.emoji;
   const meta=document.createElement('div');const title=document.createElement('strong');title.textContent=lang==='ar'?s.ar:s.en;
   const small=document.createElement('small');small.textContent=new Date(item.at).toLocaleString(lang==='ar'?'ar-OM':'en-GB',{dateStyle:'medium',timeStyle:'short'});
-  meta.append(title,small);row.append(symbol,meta);return row;
+  meta.append(title,small);row.append(symbol,meta);
+  const details=document.createElement('div');details.className='history-details';
+  const badge=document.createElement('span');badge.className='loc';badge.textContent=item.loc?('⌖ '+fmtCoords(item.loc)):ui('○ No location','○ بدون موقع');
+  const btn=document.createElement('button');btn.type='button';btn.className='history-map-button';btn.textContent=ui(item.loc?'View map':'Set pin',item.loc?'عرض الخريطة':'تحديد الموقع');btn.addEventListener('click',()=>openMapSection(item.uid));
+  details.append(badge,btn);row.append(details);return row;
  }));
  if(!all.length){const blank=document.createElement('div');blank.className='history-blank';blank.textContent=ui('Your recognized signs will appear here.','ستظهر اللوحات التي يتم التعرّف عليها هنا.');$('historyList').append(blank);}
 }
@@ -218,8 +230,225 @@ el.analyze.addEventListener('click',()=>analyze());
 el.auto.addEventListener('change',()=>{if(el.auto.checked)beginAutoScan();else if(autoTimer){clearInterval(autoTimer);autoTimer=null;}});
 $('retryBtn').addEventListener('click',()=>{if(cameraOn||photoData)analyze();else showResult(el.empty);});
 $('signSearch').addEventListener('input',renderLibrary);
-$('clearHistory').addEventListener('click',()=>{if(confirm(ui('Delete the saved scan history on this device?','هل تريد حذف سجل المسح المحفوظ على هذا الجهاز؟'))){try{localStorage.removeItem('roadSignLensHistory');}catch{}renderHistory();}});
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>changeView(b.dataset.view)));
+$('clearHistory').addEventListener('click',()=>{if(confirm(ui('Delete the saved scan history on this device?','هل تريد حذف سجل المسح المحفوظ على هذا الجهاز؟'))){try{localStorage.removeItem('roadSignLensHistory');}catch{}renderHistory();renderMapRecords();}});
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>b.dataset.view==='map'?openMapSection():changeView(b.dataset.view)));
 window.addEventListener('pagehide',stopCamera);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&cameraOn)stopCamera();});
+// GIS extension. Coordinates are the PHONE'S location when scanned, not surveyed sign coordinates.
+let gpsEnabled = false, geoWatch = null, gpsFix = null, gpsError = '';
+let signMap = null, mapLayer = null, currentRecord = null, editingPin = false;
+const GEO_MAX_AGE_MS = 20000;
+const SAFE_OMAN_CENTER = [23.5859, 58.4059];
+const rad = x => x * Math.PI / 180;
+function distanceMeters(a,b) {
+ const R=6371000, deltaLat=rad(b.lat-a.lat), deltaLon=rad(b.lon-a.lon);
+ const h=Math.sin(deltaLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(deltaLon/2)**2;
+ return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
+}
+function newUID(){return globalThis.crypto?.randomUUID?.() || `scan-${Date.now()}-${Math.random().toString(36).slice(2)}`;}
+function copyFix(pos) {
+ const c=pos.coords;
+ if(!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude))throw new Error('Invalid GPS result');
+ const fix={lat:c.latitude,lon:c.longitude,accuracy:Number.isFinite(c.accuracy)?Math.round(c.accuracy):null,at:Date.now(),source:'phone'};
+ gpsFix=fix; updateGPSStatus();
+ return {...fix};
+}
+function readPosition(opts={}){
+ return new Promise((resolve,reject)=>{
+  if(!('geolocation' in navigator)){reject(new Error(ui('Location services are not available.','خدمة تحديد الموقع غير متاحة.')));return;}
+  navigator.geolocation.getCurrentPosition(p=>resolve(copyFix(p)),reject,{enableHighAccuracy:true,timeout:11000,maximumAge:opts.maximumAge ?? 4000});
+ });
+}
+function updateGPSStatus(){
+ const status=$('gpsStatus'),btn=$('gpsBtn');
+ btn.classList.toggle('on',gpsEnabled);
+ $('gpsButtonText').textContent=gpsEnabled?ui('Turn GPS tagging off','إيقاف ربط GPS'):ui('Enable GPS tagging','تفعيل ربط GPS');
+ if(gpsEnabled&&gpsFix){status.textContent=ui(`GPS enabled · ±${gpsFix.accuracy ?? '?'} m · phone position`,`GPS مفعل · ±${gpsFix.accuracy ?? '؟'} م · موقع الهاتف`);}
+ else if(gpsEnabled){status.textContent=ui('GPS enabled · waiting for a fix','GPS مفعل · بانتظار تحديد الموقع');}
+ else{status.textContent=gpsError || ui('Off · no location collected','متوقف · لا يتم جمع الموقع');}
+ const lastRecord=getHistory().find(r=>r.loc?.source==='phone'&&r.loc.accuracy!=null);
+ const lastAccuracy=gpsFix?.accuracy??lastRecord?.loc?.accuracy;
+ $('accuracyLabel').textContent=lastAccuracy!=null?`±${lastAccuracy} m`:'—';
+}
+function stopGPSWatch(){
+ if(geoWatch!==null){try{navigator.geolocation.clearWatch(geoWatch);}catch{} geoWatch=null;}
+}
+function startGPSWatch(){
+ stopGPSWatch();
+ if(!gpsEnabled)return;
+ geoWatch=navigator.geolocation.watchPosition(copyFix,err=>{gpsError=err?.message||'GPS unavailable';updateGPSStatus();},{enableHighAccuracy:true,timeout:14000,maximumAge:10000});
+}
+async function toggleGPS(){
+ if(gpsEnabled){gpsEnabled=false;gpsFix=null;gpsError='';stopGPSWatch();updateGPSStatus();return;}
+ $('gpsStatus').textContent=ui('Requesting location permission…','جارٍ طلب الإذن لتحديد الموقع...');
+ try{
+  await readPosition({maximumAge:0});gpsEnabled=true;gpsError='';startGPSWatch();updateGPSStatus();
+ }catch(err){gpsEnabled=false;gpsError=ui('Location blocked or unavailable. Check Safari permissions.','تعذّر تحديد الموقع. راجع أذونات سفاري.');updateGPSStatus();}
+}
+async function fixForCameraScan(){
+ if(!gpsEnabled || !cameraOn || photoData)return null;
+ // A fresh GPS snapshot is captured alongside the image, not after a long model download.
+ if(gpsFix && Date.now()-gpsFix.at<GEO_MAX_AGE_MS)return {...gpsFix};
+ try{return await readPosition();}catch(e){return null;}
+}
+function isAutoDuplicate(item){
+ return getHistory().some(old=>{
+  if(old.id!==item.id || Date.now()-Date.parse(old.at)>90000)return false;
+  if(item.loc&&old.loc)return distanceMeters(item.loc,old.loc)<35;
+  return !item.loc&&!old.loc;
+ });
+}
+function saveIdentifiedSign(item,automatic=false){
+ if(automatic&&isAutoDuplicate(item))return false;
+ saveHistory(item);
+ return true;
+}
+function fmtCoords(loc){return loc?`${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}`:'—';}
+function locDescription(loc){
+ if(!loc)return ui('No location attached · tap a record to place it on the map','بدون إحداثيات · اختر السجل وحدد الموقع على الخريطة');
+ if(loc.source==='manual')return ui('Manually placed pin · location not independently verified','موقع تم تحديده يدويًا · لم يتم التحقق منه');
+ return ui(`Phone GPS position · accuracy ±${loc.accuracy??'?'} m · sign may be farther away`,`موقع الهاتف · الدقة ±${loc.accuracy??'؟'} متر · قد تكون اللوحة أبعد`);
+}
+function mapStatusText(){
+ const rows=getHistory(),tagged=rows.filter(r=>r.loc).length;
+ const lastRecord=rows.find(r=>r.loc?.source==='phone'&&r.loc.accuracy!=null);
+ const lastAccuracy=gpsFix?.accuracy??lastRecord?.loc?.accuracy;
+ $('accuracyLabel').textContent=lastAccuracy!=null?`±${lastAccuracy} m`:'—';
+ $('mappedCount').textContent=tagged;
+ $('unmappedCount').textContent=rows.length-tagged;
+ $('mapListCount').textContent=lang==='ar'?`${rows.length} سجل`:`${rows.length} records`;
+ for(const id of ['exportGeoBtn','exportCsvBtn','exportKmlBtn'])$(id).disabled=tagged===0;
+}
+function initMap(){
+ if(signMap)return true;
+ if(!window.L){$('signMap').hidden=true;$('mapUnavailable').hidden=false;$('mapUnavailable').textContent=ui('Map is unavailable. Connect to the internet to load the map. Your saved records and exports will still work.','الخريطة غير متاحة. اتصل بالإنترنت لتحميلها. ستظل السجلات المحفوظة وخيارات التصدير متاحة.');return false;}
+ $('mapUnavailable').hidden=true;$('signMap').hidden=false;
+ signMap=L.map('signMap',{zoomControl:true}).setView(SAFE_OMAN_CENTER,6);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',maxZoom:19}).addTo(signMap);
+ mapLayer=L.featureGroup().addTo(signMap);
+ signMap.on('click',e=>{
+  if(!editingPin||!currentRecord)return;
+  updateRecordLocation(currentRecord,{lat:e.latlng.lat,lon:e.latlng.lng,accuracy:null,source:'manual'});
+  editingPin=false;renderMapRecords();focusCurrentRecord();
+ });
+ return true;
+}
+function updateRecordLocation(uid,loc){
+ const rows=getHistory(),idx=rows.findIndex(r=>r.uid===uid);
+ if(idx<0)return;
+ if(!Number.isFinite(loc?.lat)||!Number.isFinite(loc?.lon)||Math.abs(loc.lat)>90||Math.abs(loc.lon)>180)return;
+ rows[idx].loc={lat:loc.lat,lon:loc.lon,accuracy:loc.accuracy??null,source:loc.source==='manual'?'manual':'phone'};
+ try{localStorage.setItem('roadSignLensHistory',JSON.stringify(rows));}catch(e){console.warn(e);}
+ renderHistory();renderMapRecords();
+}
+function createListItem(record){
+ const s=byId[record.id];if(!s)return null;
+ const item=document.createElement('button');item.type='button';item.className='map-list-item';item.classList.toggle('selected',record.uid===currentRecord);
+ const emoji=document.createElement('span');emoji.className='em';emoji.textContent=s.emoji;
+ const desc=document.createElement('span');desc.className='desc';const strong=document.createElement('strong'),small=document.createElement('small');
+ strong.textContent=lang==='ar'?s.ar:s.en;
+ const dt=new Date(record.at).toLocaleString(lang==='ar'?'ar-OM':'en-GB',{dateStyle:'short',timeStyle:'short'});
+ small.textContent=(record.loc?'⌖ '+fmtCoords(record.loc):ui('○ No GPS position','○ بدون موقع'))+' · '+dt;
+ desc.append(strong,small);item.append(emoji,desc);
+ item.addEventListener('click',()=>{currentRecord=record.uid;editingPin=false;renderMapRecords();focusCurrentRecord();});
+ return item;
+}
+function renderMapRecords(){
+ const rows=getHistory();mapStatusText();
+ const list=$('mapSignList');list.replaceChildren(...rows.map(createListItem).filter(Boolean));
+ if(!rows.length){const empty=document.createElement('p');empty.className='map-empty';empty.textContent=ui('No scans recorded yet. Identify a sign, enable GPS mapping, then see its position here.','لا توجد لوحات مسجلة بعد. تعرف على لوحة مع تفعيل GPS لعرض موقعها هنا.');list.append(empty);}
+ if(currentRecord&&!rows.some(r=>r.uid===currentRecord)){currentRecord=null;editingPin=false;}
+ renderPinEditor(rows.find(r=>r.uid===currentRecord));
+ if(signMap){
+  mapLayer.clearLayers();
+  for(const row of rows){
+   const s=byId[row.id],loc=row.loc;if(!s||!loc)continue;
+   const ico=L.divIcon({html:`<div class="sign-pin">${s.emoji}</div>`,className:'',iconSize:[39,39],iconAnchor:[19,19]});
+   const marker=L.marker([loc.lat,loc.lon],{icon:ico,title:lang==='ar'?s.ar:s.en}).addTo(mapLayer);
+   const popup=document.createElement('div');const name=document.createElement('strong');name.textContent=lang==='ar'?s.ar:s.en;
+   const meta=document.createElement('p');meta.textContent=`${fmtCoords(loc)}\n${locDescription(loc)}`;
+   popup.append(name,meta);marker.bindPopup(popup);marker.on('click',()=>{currentRecord=row.uid;editingPin=false;renderMapRecords();});
+  }
+ }
+}
+function renderPinEditor(row){
+ const editor=$('pinEditor');editor.hidden=!row;
+ if(!row){$('mapEditHint').textContent='';return;}
+ const s=byId[row.id];$('pinEditorName').textContent=s?(lang==='ar'?s.ar:s.en):row.id;
+ $('pinEditorCoords').textContent=row.loc?fmtCoords(row.loc):ui('This record has no coordinates yet.','هذا السجل بدون إحداثيات حتى الآن.');
+ $('pinEditorSource').textContent=locDescription(row.loc);
+ $('editPinBtn').textContent=editingPin?ui('Tap a point on the map…','المس نقطة على الخريطة...'):ui('Adjust on map','تعديل الموقع على الخريطة');
+ if(!editingPin)$('mapEditHint').textContent=ui('Pin coordinates can be corrected by tapping Adjust on map.','يمكن تصحيح الإحداثيات باختيار تعديل الموقع على الخريطة.');
+}
+function focusCurrentRecord(){
+ const row=getHistory().find(r=>r.uid===currentRecord);
+ if(!row||!signMap)return;
+ if(row.loc){signMap.setView([row.loc.lat,row.loc.lon],Math.max(signMap.getZoom(),16));}
+ else if(gpsFix){signMap.setView([gpsFix.lat,gpsFix.lon],Math.max(signMap.getZoom(),14));}
+}
+function openMapSection(uid=null){
+ if(uid)currentRecord=uid;
+ changeView('map');
+ // Leaflet must be initialized only after the map tab is visible; refresh dimensions.
+ requestAnimationFrame(()=>{
+  if(initMap()){
+   signMap.invalidateSize();renderMapRecords();
+   if(currentRecord)focusCurrentRecord();
+   else if(mapLayer.getLayers().length){signMap.fitBounds(mapLayer.getBounds().pad(.15),{maxZoom:16});}
+   else if(gpsFix){signMap.setView([gpsFix.lat,gpsFix.lon],14);}
+  }else{renderMapRecords();}
+ });
+}
+function exportFile(name,data,type){
+ const blob=new Blob([data],{type});const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function locatedRecords(){return getHistory().filter(r=>r.loc&&byId[r.id]);}
+function exportGeoJSON(){
+ const features=locatedRecords().map(r=>({type:'Feature',geometry:{type:'Point',coordinates:[r.loc.lon,r.loc.lat]},properties:{id:r.uid,sign_id:r.id,name_en:byId[r.id].en,name_ar:byId[r.id].ar,observed_at:r.at,accuracy_m:r.loc.accuracy,location_source:r.loc.source,verification:'unverified',note:'Phone GPS is not exact sign position; manual pins are not surveyed.'}}));
+ exportFile('road-sign-lens-signs.geojson',JSON.stringify({type:'FeatureCollection',features},null,2),'application/geo+json;charset=utf-8');
+}
+function quoteCSV(v){return '"'+String(v??'').replaceAll('"','""')+'"';}
+function exportCSV(){
+ const fields=['id','sign_id','name_en','name_ar','latitude','longitude','gps_accuracy_m','location_source','observed_at','verification'];
+ const rows=locatedRecords().map(r=>[r.uid,r.id,byId[r.id].en,byId[r.id].ar,r.loc.lat,r.loc.lon,r.loc.accuracy??'',r.loc.source,r.at,'unverified']);
+ exportFile('road-sign-lens-signs.csv','\ufeff'+[fields.map(quoteCSV).join(','),...rows.map(r=>r.map(quoteCSV).join(','))].join('\r\n'),'text/csv;charset=utf-8');
+}
+function xmlEscape(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');}
+function exportKML(){
+ const placemarks=locatedRecords().map(r=>`<Placemark><name>${xmlEscape(byId[r.id].en)}</name><description>${xmlEscape('Unverified sign detection · source '+r.loc.source+' · '+r.at)}</description><Point><coordinates>${r.loc.lon},${r.loc.lat},0</coordinates></Point></Placemark>`);
+ exportFile('road-sign-lens-signs.kml','<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document>'+placemarks.join('')+'</Document></kml>','application/vnd.google-earth.kml+xml;charset=utf-8');
+}
+$('gpsBtn').addEventListener('click',toggleGPS);
+$('centerGpsBtn').addEventListener('click',async()=>{
+ try{const fix=await readPosition({maximumAge:0});if(initMap()){signMap.invalidateSize();signMap.setView([fix.lat,fix.lon],16);}}
+ catch(e){$('mapEditHint').textContent=ui('Allow location access in Safari to locate your phone.','اسمح بتحديد الموقع في سفاري للوصول إلى موقع الهاتف.');}
+});
+$('exportGeoBtn').addEventListener('click',exportGeoJSON);
+$('exportCsvBtn').addEventListener('click',exportCSV);
+$('exportKmlBtn').addEventListener('click',exportKML);
+$('editPinBtn').addEventListener('click',()=>{
+ if(!currentRecord)return;
+ if(!initMap()){$('mapEditHint').textContent=ui('Connect to the internet to load the map before editing a pin.','اتصل بالإنترنت لتحميل الخريطة قبل تعديل الموقع.');return;}
+ editingPin=!editingPin;renderMapRecords();
+ if(editingPin){$('mapEditHint').textContent=ui('Tap where the SIGN actually stands. The next map tap will update this record.','المس الموقع الفعلي للوحة على الخريطة، وسيتم تحديث إحداثيات السجل.');}
+});
+$('myGpsPinBtn').addEventListener('click',async()=>{
+ if(!currentRecord)return;
+ const uid=currentRecord;
+ $('mapEditHint').textContent=ui('Locating your phone…','جارٍ تحديد موقع الهاتف...');
+ try{const fix=await readPosition({maximumAge:0});updateRecordLocation(uid,fix);editingPin=false;focusCurrentRecord();}
+ catch(e){$('mapEditHint').textContent=ui('Could not get GPS. Check location permission.','تعذّر تحديد الموقع. تحقق من الإذن.');}
+});
+$('removePinBtn').addEventListener('click',()=>{
+ if(!currentRecord)return;
+ if(!confirm(ui('Delete this sign record and its map pin?','هل تريد حذف هذا السجل وعلامته من الخريطة؟')))return;
+ const rows=getHistory().filter(r=>r.uid!==currentRecord);
+ try{localStorage.setItem('roadSignLensHistory',JSON.stringify(rows));}catch{}
+ currentRecord=null;editingPin=false;renderHistory();renderMapRecords();
+});
+window.addEventListener('pagehide',stopGPSWatch);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopGPSWatch();else if(gpsEnabled)startGPSWatch();});
+updateGPSStatus();
+
 updateLanguage();setSourceVisibility();showResult(el.empty);
