@@ -8,3 +8,206 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 .asset-details{border:1px solid var(--line);border-radius:9px;padding:11px 13px}.asset-details summary{cursor:pointer;font-weight:800;font-size:.8rem;color:#23624e;min-height:25px}.asset-subgrid{padding:15px 0 0;gap:12px}.asset-subgrid .form-field{min-width:0}
+
+/* Road Sign Lens 3.1: restyled to retain the successful original midnight/teal visual identity.
+   Keeps v3 survey and GIS capabilities; explicit contrast, reduced motion, legible focus.
+*/
+:root {
+  color-scheme:dark;
+  --ink:#eaf7fa;
+  --muted:#aec7d3;
+  --green:#3ee1c6;
+  --green-dark:#72f2db;
+  --blue:#19475d;
+  --nav:#071924;
+  --canvas:#081c29;
+  --line:#2a5060;
+  --white:#102b39;
+  --surface:#102b39;
+  --surface-raised:#193847;
+  --shadow:0 12px 34px rgba(0,8,18,.17);
+  background:#081c29;
+}
+body {
+  background:radial-gradient(ellipse 850px 550px at 48% -200px,#155466 0%,#081c29 73%);
+  color:var(--ink);
+  letter-spacing:.005em;
+}
+.app{grid-template-columns:252px minmax(0,1fr)}
+.sidebar{background:#061722;border-inline-end:1px solid #1e4551}
+.brand{padding-bottom:43px}
+.brand-logo{background:#155464;color:#61ffde;border-color:#48f0d2;box-shadow:0 8px 28px #00c9ad17}
+.brand-type{letter-spacing:.065em}
+.brand-type strong{color:var(--green)}
+.brand-type small{color:#aac7d0}
+.sidebar-caption{color:#8baeba}
+.nav-btn{color:#b7d1dd;font-size:.92rem;border-radius:13px}
+.nav-btn:hover,.nav-btn:focus-visible{color:white;background:#1b4250}
+.nav-btn.current{background:#1a4550;box-shadow:inset 3px 0 #48e6c6;color:#fff}
+.nav-dot{background:#4cffe0}
+.sidebar-bottom{border-color:#285061}
+.sidebar-status{color:#c2f9e9}
+.topbar{height:70px;background:#0b2432;border-color:var(--line);padding-inline:34px}
+.breadcrumbs{color:#9fbdcb}
+.breadcrumbs strong{color:#e6f5f5}
+.header-actions .badge.soft{background:#1e4d4d;color:#b0f4de}
+.icon-text-btn,.access-btn{background:#143443;border:1px solid #375666;color:#e3f7fa;border-radius:10px}
+.icon-text-btn:hover,.access-btn:hover{background:#1f4855}
+.page{padding-top:32px}
+.page-head{margin-bottom:23px}
+.page-head h1{font-size:clamp(2.1rem,3.4vw,3.25rem);letter-spacing:-.048em;line-height:1.08;margin:12px 0}
+.page-head h1 em{color:var(--green)}
+.page-head p{font-size:.93rem;color:#aac8d5;max-width:690px;line-height:1.7}
+.eyebrow,.kicker{color:#56efd1;letter-spacing:.22em}
+.eyebrow .line{background:#3addbf}
+.panel,.stat-card,.catalog-card{background:#102b39;border-color:#2a4b5c;border-radius:18px;box-shadow:var(--shadow)}
+.panel{overflow:visible}
+.panel-head h2{font-size:1.15rem;color:#f4fdff}
+.stat-grid{gap:13px;margin-bottom:20px}
+.stat-card{min-height:109px;padding:17px 20px;background:linear-gradient(150deg,#143241,#102936 88%)}
+.stat-card span{color:#bdd7dc;font-weight:750}
+.stat-card strong{font-size:1.95rem;color:#f5ffff;margin-top:4px}
+.stat-card small{font-size:.67rem;color:#a3bdc9}
+.stat-icon{color:#46bba9;opacity:.4}
+.stat-card:nth-child(3){border-color:#267263}
+.survey-grid{gap:19px;grid-template-columns:minmax(0,1.55fr) minmax(305px,.82fr)}
+.scan-panel{padding:21px}
+.camera-stage{border-radius:17px;aspect-ratio:16/10;border:1px solid #2d6271;background:radial-gradient(ellipse at 50% 58%,#183b4a,#071924 70%);box-shadow:inset 0 0 24px #03141b}
+.finder-icon{width:103px;height:103px;background:#113e4b;border:1px solid #429e9b;color:#66ffdb;border-radius:26px;box-shadow:0 0 0 9px #1d636b22}
+.camera-fallback h3{font-size:1.12rem;margin-top:19px;color:#f4ffff}
+.camera-fallback p{color:#bfd3dc;max-width:305px;font-size:.8rem}
+.camera-corner-label{letter-spacing:.2em;color:#b8e3dc}
+.camera-footer span{background:#031720db;border:1px solid #245463}
+.camera-chip{background:#172e3d;color:#c4e0e6;border-color:#315363}
+.camera-chip.live{background:#0c5748;color:#d5fff1;border-color:#169e85}
+.btn{border-radius:12px;min-height:47px;font-size:.87rem;transition:background .18s,transform .18s}
+.btn-dark{background:#164655;border-color:#2d7a83;color:#f4ffff}
+.btn-dark:hover:not(:disabled){background:#1e6170;filter:none}
+.btn-outline{background:#173543;border-color:#396372;color:#e6fafc}
+.btn-outline:hover:not(:disabled){background:#244c58;filter:none}
+.btn-accent{background:#35d7b8;border-color:#35d7b8;color:#04292e}
+.btn-accent:hover:not(:disabled){background:#64f0d2;filter:none}
+.btn-accent:disabled{background:#227262;color:#cbe7e1;opacity:.65}
+.btn-danger{background:#753039;color:#fff;border-color:#bf606a}
+.scan-toolbar{gap:11px}
+.option strong{color:#ecf8fa}
+.option small{color:#adc5d0}
+.survey-options{border-color:#285363}
+.inline-alert{background:#163b43;border-color:#2e696a;color:#d5ecea;padding:13px 14px;border-radius:12px;font-size:.75rem}
+.inline-alert>span:first-child{color:#59e7d0}
+.status-panel,.candidate-panel,.mini-panel{padding:21px}
+.readiness-row{border-color:#284c59}
+.readiness-row strong{color:#ebfbff;font-size:.82rem}
+.readiness-row small{color:#a9c5d3}
+.readiness-icon{background:#184e50;color:#79fae0}
+.tiny-btn{background:#16483e;color:#c8ffef;border:1px solid #328875}
+.badge{background:#1d3b48;color:#d8eef5}
+.badge.soft{background:#174d47;color:#b5f3dd}
+.latest-emoji{background:#164758;border-color:#376574}
+.mini-action{color:#d1e9ed}
+.mini-action:hover{color:#67f6dc}
+.mini-action+.mini-action{border-color:#25485a}
+.mini-action>span:first-child{color:#6cead1}
+.map-record,.inventory-entry{border-color:#295364}
+.map-record small,.inventory-entry small{color:#a5bdcb}
+.map-record strong,.inventory-entry strong{color:#f0fcff}
+.map-key{color:#c0d8df}
+.map-wrap{padding:14px}
+.map-canvas{border-radius:12px;background:#e0f0eb;border:1px solid #395a68}
+.map-help{color:#bdcfd8}
+.inventory-symbol,.catalog-card .emoji{background:#19495a}
+.inventory-controls select,.setting-field select{background:#173744;color:#eaf8fc;border:1px solid #396272}
+.search-field{background:#173744;border-color:#386171;color:#eaf8fc}
+.search-field input{color:#eaf8fc}
+.search-field input::placeholder{color:#aac1cc}
+.catalog-card{padding:19px}
+.catalog-card strong{color:#f2fcff}
+.catalog-card p{color:#b1cbd3}
+.catalog-card .group{color:#6ef2d3}
+.settings-card h2{color:#eaf7fa}
+.settings-note{background:#174452;color:#c7e0e5}
+.settings-option{border-color:#295161}
+.settings-option small{color:#b3cad5}
+.form-field input,.form-field select,.form-field textarea{background:#163744;border-color:#4b7580;color:#eaf7f8}
+.form-field input::placeholder,.form-field textarea::placeholder{color:#a4bdc9}
+.asset-details{border-color:#416473}
+.asset-details summary{color:#78f1d6}
+.form-tips{color:#aac8d3}
+.confirm-card{background:#142f3d;border:1px solid #3b6470}
+.confirm-card p{color:#bed4de}
+/* Popup/dialog input text must remain legible when system switches color modes. */
+dialog{background:#112e3c;color:#eaf7fa;border:1px solid #456575}
+dialog::backdrop{background:#00151bcf}
+/* Leaflet injects bright tile UI; keep popups readable. */
+.leaflet-container{color:#203a47;color-scheme:light}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{color:#223847;background:#fff}
+.leaflet-control a{color:#253946}
+/* Accessible, high-contrast visual identity */
+body.high-contrast{--ink:#fff;--muted:#fff;--canvas:#000;--white:#000;--line:#f7f7f7;--green:#6bffca;--green-dark:#91ffd8;background:#000;color:#fff}
+body.high-contrast .panel,body.high-contrast .stat-card,body.high-contrast .catalog-card{background:#000;border:2px solid #fff}
+body.high-contrast .topbar,body.high-contrast .mobile-nav,body.high-contrast .sidebar{background:#000;border-color:#fff}
+body.high-contrast .btn-outline,body.high-contrast .btn-dark,body.high-contrast .search-field,body.high-contrast select,body.high-contrast input,body.high-contrast textarea{border:2px solid white;color:#fff;background:#000}
+body.high-contrast .badge,body.high-contrast .camera-chip{background:#000;color:#fff;border:1px solid white}
+body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body.high-contrast .page-head p,body.high-contrast .option small{color:#fff}
+:focus-visible{outline:3px solid #f8d26b!important;outline-offset:3px}
+/* Mobile camera-first survey. Prioritize actual task over dashboard clutter. */
+@media(max-width:920px){
+ .topbar{background:#0a2634;border-color:#315461}
+ .mobile-nav{height:calc(70px + env(safe-area-inset-bottom));background:#0b2533;border-color:#386071;box-shadow:0 -10px 30px #0008}
+ .mobile-nav button{color:#b8d2db;min-height:56px;font-size:.78rem}
+ .mobile-nav button.current{color:#59f1d5;background:#17424c;border-radius:10px;margin:7px 4px 5px}
+ .mobile-nav small{color:inherit;font-size:.72rem}
+ .page{padding-bottom:calc(106px + env(safe-area-inset-bottom))}
+ .toast-area{bottom:calc(88px + env(safe-area-inset-bottom))}
+}
+@media(max-width:720px){
+ .page{padding:19px 14px calc(104px + env(safe-area-inset-bottom))}
+ .topbar{height:61px;padding:0 17px}
+ .breadcrumbs strong{color:#e8f6f9;font-size:.84rem}
+ .page-head{gap:10px;margin-bottom:16px}
+ .page-head h1{font-size:clamp(2.08rem,7vw,2.6rem);letter-spacing:-.038em;line-height:1.1;margin:9px 0}
+ .page-head p{font-size:.86rem;line-height:1.54}
+ .eyebrow{letter-spacing:.14em;font-size:.64rem}
+ .head-actions .btn{border-radius:12px;background:#143c46}
+ #surveyPage{display:flex;flex-direction:column}
+ #surveyPage .page-head{order:0}
+ #surveyPage .survey-grid{order:1;margin-bottom:13px}
+ #surveyPage .stat-grid{order:2;margin-bottom:0}
+ .survey-grid{display:flex;flex-direction:column;gap:13px}
+ .scan-panel{padding:15px}
+ .panel-head{margin-bottom:13px}
+ .panel-head h2{font-size:1.03rem}
+ .camera-chip{font-size:.67rem;padding:6px 9px}
+ .camera-stage{aspect-ratio:4/3;border-radius:12px}
+ .camera-fallback{padding:15px}
+ .finder-icon{width:76px;height:76px;border-radius:18px;font-size:3.65rem}
+ .camera-fallback h3{font-size:1.01rem;margin:16px 0 6px}
+ .camera-fallback p{font-size:.78rem}
+ .camera-corner-label{font-size:.57rem}
+ .camera-footer{inset:auto 9px 10px;font-size:.57rem}
+ .camera-footer span{padding:5px 7px}
+ .scan-toolbar{margin:13px 0;display:grid;grid-template-columns:1fr 1fr;gap:9px}
+ .scan-toolbar .btn{min-height:50px;font-size:.82rem}
+ .scan-toolbar .btn:last-child{grid-column:1/-1}
+ .survey-options{gap:12px}
+ .option strong{font-size:.77rem}
+ .option small{font-size:.7rem}
+ .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat-card{min-height:95px;padding:13px 14px}
+ .stat-card strong{font-size:1.75rem}
+ .stat-card>span{font-size:.74rem}
+ .stat-card small{font-size:.68rem}
+ .stat-icon{top:12px;right:12px}
+ .inline-alert{font-size:.72rem}
+ .status-panel,.candidate-panel,.mini-panel{padding:17px}
+ .catalog-card{padding:14px}
+ .catalog-card strong{font-size:.85rem}
+ .map-canvas{min-height:335px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+/* Finish contrast of specialized status pills and empty-state ornament. */
+.badge.okay{color:#bbffe4;background:#1b5248;border:1px solid #337766}
+.badge.subtle{color:#e5f4fa;background:#234553;border:1px solid #396475}
+.radar{background:#194757;border:1px solid #3d817e;color:#55f2cc}
+.sr-label{color:#bde4e2}
+::placeholder{opacity:1}
