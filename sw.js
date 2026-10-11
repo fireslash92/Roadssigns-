@@ -1,5 +1,5 @@
-const CACHE='road-sign-lens-v4.0-map-layout-fix';
-const SHELL=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./app.js','./mobileclip-engine.js','./signs.js','./detector.js'];
+const CACHE='road-sign-lens-v4.1-live-tracker';
+const SHELL=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./app.js','./mobileclip-engine.js','./signs.js','./detector.js','./tracking-engine.js'];
 self.addEventListener('install', event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(x=>x.startsWith('road-sign-lens-')||x.startsWith('sign-lens-')).filter(x=>x!==CACHE).map(x=>caches.delete(x)))));self.clients.claim();});
 self.addEventListener('fetch',event=>{
