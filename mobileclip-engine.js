@@ -1,3 +1,4 @@
+import { readVocabulary, writeVocabulary } from './vocabulary-cache.js';
 // Road Sign Lens Pro v3.8 - MobileCLIP split-tower engine.
 // The published Xenova/mobileclip_s0 repository contains text_model*.onnx and
 // vision_model*.onnx. It does NOT contain a generic model_quantized.onnx.
@@ -17,35 +18,43 @@ export async function createMobileClipClassifier(lib, labels, callbacks = {}) {
   }
   const { AutoTokenizer, AutoProcessor, CLIPTextModelWithProjection,
           CLIPVisionModelWithProjection, RawImage, dot, softmax } = lib;
+  const vocabulary = callbacks.vocabularyCache || {get: readVocabulary, set: writeVocabulary};
   const report = callbacks.onStage || (() => {});
   const progress_callback = callbacks.onProgress || (() => {});
   const common = { device: 'wasm', progress_callback };
 
-  report('tokenizer');
-  const tokenizer = await AutoTokenizer.from_pretrained(MODEL_ID);
-  report('processor');
-  const processor = await AutoProcessor.from_pretrained(MODEL_ID);
-
-  // q8 loads onnx/text_model_quantized.onnx, present in this repository.
-  report('text-model');
-  const textModel = await CLIPTextModelWithProjection.from_pretrained(MODEL_ID, {
-    ...common, dtype: 'q8',
-  });
-  let textVectors;
-  try {
-    report('text-embeddings');
-    const inputs = tokenizer(labels, {
-      padding: 'max_length', truncation: true, max_length: 77,
+  // On subsequent app opens, reuse the exact normalized sign-description vectors.
+  // This skips both the 43 MB text-tower initialization and text inference.
+  report('vocabulary-cache');
+  let textVectors = await vocabulary.get(MODEL_ID, labels);
+  callbacks.onVocabularyCache?.(Boolean(textVectors));
+  if (textVectors) {
+    report('cached-vocabulary');
+  } else {
+    report('tokenizer');
+    const tokenizer = await AutoTokenizer.from_pretrained(MODEL_ID);
+    report('text-model');
+    const textModel = await CLIPTextModelWithProjection.from_pretrained(MODEL_ID, {
+      ...common, dtype: 'q8',
     });
-    const { text_embeds } = await textModel(inputs);
-    textVectors = text_embeds.normalize().tolist();
-    if (textVectors.length !== labels.length) throw new Error('Invalid text embedding dimensions');
-  } finally {
-    // The text tower is no longer needed after computing label vectors.
-    if (typeof textModel.dispose === 'function') {
-      try { await textModel.dispose(); } catch (err) { console.warn('Text model cleanup:', err); }
+    try {
+      report('text-embeddings');
+      const inputs = tokenizer(labels, {
+        padding: 'max_length', truncation: true, max_length: 77,
+      });
+      const { text_embeds } = await textModel(inputs);
+      textVectors = text_embeds.normalize().tolist();
+      if (textVectors.length !== labels.length) throw new Error('Invalid text embedding dimensions');
+      // Cache only calculated sign vectors (never photos or GPS data).
+      await vocabulary.set(MODEL_ID, labels, textVectors);
+    } finally {
+      if (typeof textModel.dispose === 'function') {
+        try { await textModel.dispose(); } catch (err) { console.warn('Text model cleanup:', err); }
+      }
     }
   }
+  report('processor');
+  const processor = await AutoProcessor.from_pretrained(MODEL_ID);
 
   // FP32 vision avoids quantization degradation and requests onnx/vision_model.onnx.
   report('vision-model');

@@ -1,29 +1,30 @@
-# Road Sign Lens Pro v4.1 — Phase 1: Live camera tracking
+# Road Sign Lens Pro v4.2 — Faster Repeat AI Startup
 
-**Deploy directly to GitHub Pages (main / root). No GitHub Actions, npm, or build step.** Upload the *contents* of this folder (not the ZIP), replacing files from v4.0. Preserve your browser data by not clearing Safari website storage.
+Deploy by uploading the **contents of this folder** to the GitHub Pages repository root.
+**No GitHub Actions, build step, Vercel, Node.js, or npm are required to deploy.**
 
-## What's new
-- Camera candidate boxes update roughly every 320 ms while the page is active; actual frame rate depends on hardware.
-- Temporary track IDs, live track/analysis/confirmed counters and bilingual status messages.
-- Individual candidate crops classified repeatedly with the proven MobileCLIP split-tower engine.
-- Automatic logging requires at least two agreeing results for the same active track, each on a separate scan. Saves are provisional pending review; relative AI scores are **not calibrated confidence**.
-- Optional `Xenova/yolos-tiny` COCO object detector (about 10 MB quantized download), which only contributes bounding boxes for the COCO **Stop sign** category. Disabled by default to protect iPhone memory, network and battery. Color proposals remain available for other signs. First enable camera, then toggle it on.
-- Existing records/GPS map/Arabic-accessibility and working MobileCLIP loader remain intact.
+## What changed
+- **IndexedDB vocabulary cache**: after the first successful preparation, saves only the 27 normalized MobileCLIP text vectors (road-sign descriptions + exclusions). On later launches with identical descriptions, it skips loading the 43 MB text model and skips recomputing its embeddings. The full image/vision model still has to initialize on every new page session.
+- The Transformers.js **Cache API** and ONNX WASM cache are enabled when supported, to reuse downloaded model files and WASM dependencies.
+- Optional checkbox: **Prepare AI automatically when I open the app**, under Survey readiness. It starts preparation when the website opens; switch it on only if desired. It may use cellular data if the browser has cleared its downloaded files.
+- A visible `Ready in Xs` indicator measures current AI startup time and reports whether saved descriptions were reused.
+- AI diagnostic report now includes cached vocabulary and startup duration.
+- Original live camera tracking, working split-tower MobileCLIP, map CSS fix, inventory, sign types, Arabic/English, and accessibility are otherwise unchanged.
 
-## Limitations and safety
-- This is a browser prototype, not a traffic safety device or a calibrated road asset survey instrument. Stop-sign detector may not work on all Omani signs. Color-based proposals can miss signs without distinct red/blue/orange regions. Auto logs are provisional, and GPS coordinates are the **PHONE location**.
-- Do not operate the phone while driving. Use while stationary or by a passenger.
-- Camera processing stops when the page is hidden. Optional detector might load slowly on iOS and hasn't been hardware-validated. App is not guaranteed to detect every sign and cannot estimate exact post position from one phone GPS fix.
-- Additional downloaded model weights, map tiles and JS are sourced from Hugging Face and other third-party services. Stored records remain in localStorage.
-
-## How to verify
-- Open the site on Safari over HTTPS and Start camera → Prepare AI (if needed).
-- Point camera at a stationary visible sign. Yellow boxes mean **possible region**; green box with name means **two matching model results on the same temporary track**.
-- Observe 'AI passes' and 'Confirmed this session'; if auto-save is on, suggestions go to Records pending review.
-- Enable optional detector only if needed; leave it off if performance drops.
-
-## Tests
-`node --experimental-default-type=module --test tests/*.test.mjs`
+## What to expect
+The first-ever launch **still downloads substantial AI files** and calculates sign vectors, and may be slow. The second launch should be faster if Safari has retained its model cache and IndexedDB storage. Safari can evict its cache during storage pressure, and the vision model still takes time to load into memory. No speed claim can be guaranteed without field measurement. On-device AI is not instant, especially on a cellular connection.
 
 ## Deployment
-Upload root files to https://github.com/fireslash92/Roadssigns- then GitHub Settings → Pages → Deploy from a branch → main → / (root). The service worker cache name was bumped to v4.1.
+1. Download the ZIP; extract it, and upload all extracted site files to `https://github.com/fireslash92/Roadssigns-` in the repository root. Include `vocabulary-cache.js`.
+2. Use **Settings → Pages → Deploy from a branch → main → /(root)** (no Actions).
+3. Open `https://fireslash92.github.io/Roadssigns-/` on iPhone; reload if the old JS remains.
+4. Tap **Prepare AI** once and wait for **Ready**. Close/reopen the page and prepare again to compare warm launch time. Optionally enable auto preparation for future launches.
+5. Your saved inventory stays in the same browser `localStorage`; **do not clear Safari website data**. Export your records before updating as a precaution.
+
+## Safety and limits
+- Camera images and GPS are processed locally; the app still downloads ML assets from Hugging Face and CDNs.
+- Cached label vectors contain **no photos, sign detections, GPS or personal data**.
+- Do not operate while driving. Observations are provisional and locations are phone GPS positions, not measured signpost positions.
+
+## Internal checks
+`node --experimental-default-type=module --test tests/*.test.mjs` when testing in a Node environment; tests are not required for GitHub Pages deployment.

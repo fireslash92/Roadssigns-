@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101f32">
-<meta name="description" content="Road Sign Lens Pro v4.1 — live camera sign tracking for locating and reviewing roadside traffic signs.">
+<meta name="description" content="Road Sign Lens Pro v4.2 — live camera sign tracking for locating and reviewing roadside traffic signs.">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Sign Lens Pro">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoaklp9xA9JZyTc=" crossorigin="">
@@ -252,6 +252,13 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
 .enhanced-detector-row .detector-status{color:#72e7cf}
 .enhanced-detector-row input{width:23px;height:23px;accent-color:#34d9b0;flex:none}
 @media (max-width:480px){.track-monitor{gap:5px}.track-monitor>div{padding:8px 4px}.track-monitor strong{font-size:1.12rem}.track-monitor small{font-size:.62rem}}
+
+/* v4.2: Accessible opt-in startup preference; no change to the original visual identity. */
+.ai-startup-option{margin:10px 0 2px;padding:11px 10px;display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:10px;background:#153744;border-color:#325b68;cursor:pointer}
+.ai-startup-option input{width:21px;height:21px;min-width:21px;accent-color:var(--green);cursor:pointer}
+.ai-startup-option strong{font-size:.78rem;display:block;color:#effffc}
+.ai-startup-option small{font-size:.69rem;display:block;color:#b5cfda;line-height:1.55;margin-top:3px}
+.ai-startup-option:focus-within{outline:2px solid #e9a72a;outline-offset:2px}
 </style>
 <title>Road Sign Lens Pro 3.5 | Field Survey</title>
 <style id="leaflet-local-layout-fallback">
@@ -311,7 +318,7 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
   <div class="sidebar-bottom"><div class="sidebar-status"><span class="status-led" id="sidebarLed"></span><span id="sidebarStatus">Survey ready</span></div><p data-en="For stationary surveys only. Never operate while driving." data-ar="للمسح أثناء التوقف فقط. لا تستخدم التطبيق أثناء القيادة.">For stationary surveys only. Never operate while driving.</p></div>
 </aside>
 <div class="main-shell">
-<header class="topbar"><div class="breadcrumbs"><span data-en="ROAD SIGN LENS · v3.8" data-ar="العمليات الميدانية">ROAD SIGN LENS · v3.8</span><span aria-hidden="true">/</span><strong id="headerLocation" data-en="Live survey" data-ar="المسح المباشر">Live survey</strong></div><div class="header-actions"><span id="syncBadge" class="badge soft" data-en="Private · On-device" data-ar="خاص · على الجهاز">Private · On-device</span><button id="langBtn" type="button" class="icon-text-btn" aria-label="Switch language">العربية</button><button id="accessBtn" type="button" class="access-btn" aria-label="Toggle high contrast" title="High contrast">◐</button></div></header>
+<header class="topbar"><div class="breadcrumbs"><span data-en="ROAD SIGN LENS · v4.2" data-ar="العمليات الميدانية">ROAD SIGN LENS · v4.2</span><span aria-hidden="true">/</span><strong id="headerLocation" data-en="Live survey" data-ar="المسح المباشر">Live survey</strong></div><div class="header-actions"><span id="syncBadge" class="badge soft" data-en="Private · On-device" data-ar="خاص · على الجهاز">Private · On-device</span><button id="langBtn" type="button" class="icon-text-btn" aria-label="Switch language">العربية</button><button id="accessBtn" type="button" class="access-btn" aria-label="Toggle high contrast" title="High contrast">◐</button></div></header>
 <main id="main" tabindex="-1">
 <section class="page active" id="surveyPage" aria-labelledby="surveyTitle">
  <div class="page-head"><div><div class="eyebrow"><span class="line"></span><span data-en="ROAD ASSET INTELLIGENCE" data-ar="البيانات الذكية لأصول الطرق">ROAD ASSET INTELLIGENCE</span></div><h1 id="surveyTitle" data-en="Scan signs. <em>Map roads.</em>" data-ar="ارصد اللوحة. <em>حدّد موقعها.</em>">Scan signs. <em>Map roads.</em></h1><p data-en="Use your camera to find traffic signs and build a mapped, reviewable roadside inventory." data-ar="مسح ميداني يحدد الأشكال المحتملة للوحات بالكاميرا، ويقترح نوعها، ويحفظ سجلات قابلة للمراجعة على الخريطة.">Use your camera to find traffic signs and build a mapped, reviewable roadside inventory.</p></div><div class="head-actions"><button class="btn btn-outline" id="newManualBtn" type="button"><span aria-hidden="true">＋</span><span data-en="Add manually" data-ar="إضافة يدوية">Add manually</span></button></div></div>
@@ -337,7 +344,8 @@ body.high-contrast .stat-card small,body.high-contrast .readiness-row small,body
   <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">⌖</span><div><strong data-en="GPS positioning" data-ar="تحديد الموقع">GPS positioning</strong><small id="gpsDetail">Off · GPS not collecting</small></div></div><button id="gpsBtn" type="button" class="btn tiny-btn" aria-pressed="false">Enable</button></div>
   <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">✧</span><div><strong data-en="On-device AI" data-ar="الذكاء الاصطناعي المحلي">On-device AI</strong><small id="aiDetail" aria-live="polite">Not downloaded yet · tap Prepare AI, or start the camera</small></div></div><div class="ai-load-controls"><span class="badge" id="aiState">Standby</span><button class="btn btn-outline" id="prepareAiBtn" type="button">Prepare AI</button><button class="btn btn-outline" id="aiDiagnosticsBtn" type="button" hidden aria-label="Copy AI error diagnostics">Copy details</button></div></div>
   <div class="readiness-row"><div><span class="readiness-icon" aria-hidden="true">◇</span><div><strong data-en="Device storage" data-ar="التخزين على الجهاز">Device storage</strong><small data-en="Saved only in this browser" data-ar="محفوظ في هذا المتصفح فقط">Saved only in this browser</small></div></div><span class="badge okay" data-en="Local" data-ar="محلي">Local</span></div>
-  <div class="progress" id="modelProgress" hidden><div><span id="modelProgressText">Downloading AI model…</span><span id="modelProgressPct">0%</span></div><div class="progress-track"><i id="progressBar"></i></div></div>
+  <label class="ai-startup-option"><input type="checkbox" id="autoPrepareToggle"><span><strong data-en="Prepare AI automatically when I open the app" data-ar="تهيئة الذكاء الاصطناعي تلقائيًا عند فتح التطبيق">Prepare AI automatically when I open the app</strong><small data-en="Optional · starts before the camera; may use mobile data if files are not cached" data-ar="اختياري · يبدأ قبل الكاميرا؛ قد يستخدم بيانات الهاتف إذا لم تكن الملفات محفوظة">Optional · starts before the camera; may use mobile data if files are not cached</small></span></label>
+  <div class="progress" id="modelProgress" hidden><div><span id="modelProgressText">Downloading AI model…</span><span id="modelProgressPct">0%</span></div><div class="progress-track" role="progressbar" aria-label="Current AI file download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="progressBar"></i></div></div>
  </div>
  <div class="panel candidate-panel"><div class="panel-head"><div><span class="kicker" data-en="LATEST INTELLIGENCE" data-ar="آخر نتائج المسح">LATEST INTELLIGENCE</span><h2 data-en="Latest detection" data-ar="أحدث لوحة مرصودة">Latest detection</h2></div><span class="badge subtle" id="candidateTag">WAITING</span></div>
  <div class="candidate-empty" id="candidateEmpty"><div class="radar" aria-hidden="true">◎</div><h3 data-en="No sign identified yet" data-ar="لم يتم تحديد لوحة بعد">No sign identified yet</h3><p data-en="Detected sign candidates and the AI's suggested types will appear here." data-ar="ستظهر هنا الأشكال المحتملة للّوحات والأنواع المقترحة.">Detected sign candidates and the AI's suggested types will appear here.</p></div>
