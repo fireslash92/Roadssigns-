@@ -1,5 +1,5 @@
-const CACHE='road-sign-lens-v4.4-phase11';
-const SHELL=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./app.js','./mobileclip-engine.js','./wasm-runtime.js','./vocabulary-cache.js','./signs.js','./detector.js','./tracking-engine.js','./scan-quality.js','./recognition-policy.js'];
+const CACHE='road-sign-lens-v4.5-phase2';
+const SHELL=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./app.js','./mobileclip-engine.js','./wasm-runtime.js','./vocabulary-cache.js','./signs.js','./detector.js','./tracking-engine.js','./scan-quality.js','./recognition-policy.js','./geo-survey.js'];
 self.addEventListener('install', event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(x=>x.startsWith('road-sign-lens-')||x.startsWith('sign-lens-')).filter(x=>x!==CACHE).map(x=>caches.delete(x)))));self.clients.claim();});
 self.addEventListener('fetch',event=>{
