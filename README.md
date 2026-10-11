@@ -1,42 +1,46 @@
-# Road Sign Lens Pro v4.3 — Safari ONNX Compute-Runtime Compatibility
+# Road Sign Lens Pro v4.4 — Phase 1.1
+**Conservative accuracy and performance tuning, directly deployable to GitHub Pages.**
 
-This is a minimal fix on top of v4.2. The **original navy/turquoise design**, camera tracking, saved MobileCLIP sign vectors, GPS, map, sign library, and inventory remain. The error addressed is:
+This is built on the user's previously working **v4.3** version. The existing navy/turquoise visual language, MobileCLIP split-tower AI model, ONNX/Safari runtime-source fallback, map tile fixes, sign records, exports, Arabic/English localization, and manual Analyze Now remain.
 
-`no available backend found. ERR: [wasm] TypeError: Importing a module script failed.`
+## New in Phase 1.1
 
-That message is a failure to initialize the ONNX WebAssembly **compute engine**, not a missing MobileCLIP model filename.
+1. **Image-quality indicator:** Auto-scans screen candidate crops for extremely low light, extreme glare, or almost no detail. Severe cases are skipped with a plain-language indication; **manual Analyze Now still works**.
+2. **More conservative automatic suggestions:** The best sign must beat the runner-up and non-sign background labels. Two **recent consecutive matching results** on the same camera track are needed before an auto-save suggestion. MobileCLIP similarity scores are *not calibrated confidence probabilities*; the thresholds are heuristics, not accuracy guarantees. These stricter checks can cause missed signs.
+3. **Adaptive scan pacing:** Settings → Camera performance → Responsive, Balanced (default), Battery saver. CPU-heavy region analysis automatically slows the next pass instead of increasing device load. Inference duration is measured without counting initial AI model download time.
+4. **On-screen diagnostics:** Camera image quality, approximate region-processing milliseconds, AI-pass milliseconds, and severe-quality skipped-frame counts.
+5. **Reviewer feedback:** Each new AI suggestion retains its original suggested type. If an inspector changes the sign type and marks the observation reviewed, the system stores that correction. Settings → Field validation shows how many *reviewed* AI suggestions were unchanged or corrected and exports a CSV **without coordinates or photos**. This is reviewer agreement on a selected subset, **not measured real-world model accuracy**.
+6. **Backward-compatible exports:** GIS and CSV records include optional suggestion and review timestamps. Previous survey data is read from the same browser storage keys.
 
-## No GitHub Actions required
+## Installation — no GitHub Actions
 
-1. Download and extract the ZIP.
-2. Upload ALL files from the extracted folder to the **root** of `fireslash92/Roadssigns-` (especially `wasm-runtime.js`). Replace existing files. **Do not upload the ZIP as a single file.**
-3. Leave GitHub **Settings → Pages → Deploy from a branch → main → /(root)**.
-4. After Pages updates, open `https://fireslash92.github.io/Roadssigns-/` and look for **v4.3** in the header.
-5. Select **Prepare AI**. If the compute engine still fails, use **Try another runtime (reload)**; this reloads the page and changes the runtime CDN. Try again. There are four candidate sources.
-6. If all sources fail, select **Copy details** and send its `ONNX runtime source`, `ONNX attempts`, and the full error fields.
+1. **Export your existing sign inventory before upgrading.** Keep the backup.
+2. Extract `road-sign-lens-pro-v4.4-phase1.1-direct-upload.zip` and upload the CONTENTS to the repository root of `fireslash92/Roadssigns-`, replacing existing files. In particular, upload **`scan-quality.js`** and **`recognition-policy.js`**, alongside all existing JavaScript files.
+3. GitHub repository → Settings → Pages → **Deploy from a branch** → `main` → `/(root)`.
+4. After publishing, visit `https://fireslash92.github.io/Roadssigns-/` and verify the header says **v4.4**. Keep existing Safari website data; don't clear storage.
+5. On a stationary survey, open Camera → Start camera → Prepare AI (or enable automatic preparation in settings). Use Settings → Camera performance to select a profile; start with **Balanced**.
+6. Optional: review identified signs, change the sign type if needed, mark reviewed after checking the location, and download a Field validation CSV.
 
-## What changed
+## Field test (essential before production)
 
-- Verifies an ONNX Runtime **JavaScript module** before initializing the text model.
-- Uses a matching version of `ort-wasm-simd-threaded.mjs` and `ort-wasm-simd-threaded.wasm`, with explicitly configured URLs (Transformers.js v3.8.1 / ORT Web 1.22.0).
-- Tries alternative runtime CDNs, including a preference that persists **within the browser tab** for retries.
-- Removes aggressive `useWasmCache` prefetching; **browser model caching remains enabled**.
-- For ONNX startup failures, the retry button rotates the runtime source and reloads, avoiding already-rejected ONNX initialization promises in the current page.
-- The cache version and `app.js` query have been bumped, reducing risk of old code being reused.
-- Improves error explanations and detailed diagnostics.
+For a stationary test, try at least 20 known Omani traffic signs with a variety of backgrounds, distances, angles, light levels, and no-sign scenes. Note time from camera startup to first valid match, number of correct and wrong suggestions, missed signs, battery/heat observations, and GPS accuracy. Inspectors should manually verify **every** proposed sign and map location.
 
-## Limits
+Do **not** operate a camera or phone while driving; this is not an ADAS safety aid. The GPS fix is the **phone's** position, not the signpost's exact position.
 
-- **Not a self-contained/offline runtime**: the first AI initialization still needs the network to reach an ONNX source and Hugging Face model files. CDNs may be blocked or fail on some mobile networks; selecting another source is a mitigation, not a guarantee.
-- A successful preflight check confirms only that a runtime helper *imports*. It does not prove that the WASM binary initializes or that inference completes. These require a real iPhone test.
-- This package has not been deployed to your repository or field-tested on your iPhone.
-- Survey records remain in the unchanged `road-sign-lens-pro-v3-records` browser storage key; never clear website data to troubleshoot. Export records first as a precaution.
-- Do not survey while driving. The app's GPS shows the phone's location, not the signpost's precise location.
+## Verification
 
-### Technical reference
+- JS module parse: `node --check app.js`, plus additional new modules.
+- Automated tests: `node --test tests/*.test.mjs`. **31 passing tests** on the developer machine, including seven original ONNX runtime selection checks.
+- Static checks: no missing HTML IDs, missing module files, or duplicate IDs.
+- **Not verified:** live iPhone camera operation, live ONNX model download/startup, actual accuracy on Omani signs, sustained mobile frame rate, full WCAG 2.2 AA conformance, or this update's production GitHub Pages deployment. Browser automation of local websites was blocked by the test environment.
 
-Hugging Face Transformers.js v3.8.1 custom usage: https://huggingface.co/docs/transformers.js/v3.8.1/en/custom_usage
+## Design and privacy
 
-ONNX Runtime Web deployment: https://onnxruntime.ai/docs/tutorials/web/deploy.html
+- No backend, no login, no account syncing, no photo uploads introduced by this update.
+- Model components and map tiles still need network access to their existing external providers when not cached.
+- Signed-in devices are not synced; inventory remains in browser localStorage. Export often.
+- Live performance metrics are session-only; reviewer corrections persist alongside sign records in browser storage.
 
-Internal test: `node --test tests/wasm-runtime.test.mjs`. Tests are **not required** to deploy via GitHub Pages.
+## Technical files
+
+`index.html` UI and styles; `app.js` integration; `scan-quality.js` light/texture and adaptive schedule; `recognition-policy.js` conservative classification and review summaries; `detector.js` proposals and GIS export; `tracking-engine.js` temporal tracks; `mobileclip-engine.js` unchanged split-tower AI; `wasm-runtime.js` unchanged Safari runtime fallbacks; `sw.js` release cache version.
