@@ -7,7 +7,11 @@ export function detectRegions({data,width:w,height:h}) {
   const red=r>85&&r>g*1.34&&r>b*1.25;
   const blue=b>72&&b>r*1.23&&b>g*.99&&b-r>23;
   const orange=r>114&&g>66&&r>g*1.08&&g>b*1.35;
-  if(red||blue||orange){mask[i]=1;colors++;}
+  // Saturated yellow warning diamonds and green direction panels can be
+  // legitimate sign candidates; color detection is not a trained model.
+  const yellow=r>120&&g>102&&r<g*1.65&&g<r*1.12&&b<g*.68;
+  const green=g>73&&g>r*1.45&&g>b*1.17;
+  if(red||blue||orange||yellow||green){mask[i]=1;colors++;}
  }
  if(colors<14)return [];
  // Connect narrow interrupted sign borders using one 3x3 binary dilation pass.
@@ -42,7 +46,7 @@ export function validLatLon(lat,lon){return Number.isFinite(lat)&&Number.isFinit
 export function shouldDeduplicate(records,next,radius=35,now=Date.now()){
  return records.some(r=>r.id===next.id&&Math.abs(now-new Date(r.at).getTime())<15*60*1000&&(next.loc&&r.loc?distanceMeters(next.loc,r.loc)<radius:!next.loc&&!r.loc&&Math.abs(now-new Date(r.at).getTime())<45000));
 }
-export function geoFeature(record,sign){return {type:'Feature',geometry:record.loc?{type:'Point',coordinates:[record.loc.lon,record.loc.lat]}:null,properties:{id:record.uid,sign_type:record.id,sign_en:sign?.en||record.id,sign_ar:sign?.ar||'',time:record.at,review_status:record.status||'pending',location_source:record.loc?.source||'none',phone_gps_accuracy_m:record.loc?.accuracy??null,phone_fix_at:record.loc?.gpsAt||record.loc?.phoneReference?.at||(record.loc?.source==='phone'?record.loc?.at:null),phone_reference_lat:record.loc?.phoneReference?.lat??null,phone_reference_lon:record.loc?.phoneReference?.lon??null,phone_reference_accuracy_m:record.loc?.phoneReference?.accuracy??null,position_verification:record.status==='reviewed'?'reviewed':'provisional',ai_similarity_score:record.score??null,ai_suggested_sign_id:record.aiSuggestedId||null,reviewed_at:record.reviewedAt||null,notes:record.notes||'',road:record.road||'',sign_condition:record.condition||'unknown',post_condition:record.pole||'unknown',survey_session:record.session||''}};}
+export function geoFeature(record,sign){return {type:'Feature',geometry:record.loc?{type:'Point',coordinates:[record.loc.lon,record.loc.lat]}:null,properties:{id:record.uid,sign_type:record.id,sign_en:sign?.en||record.id,sign_ar:sign?.ar||'',time:record.at,review_status:record.status||'pending',location_source:record.loc?.source||'none',phone_gps_accuracy_m:record.loc?.accuracy??null,phone_fix_at:record.loc?.gpsAt||record.loc?.phoneReference?.at||(record.loc?.source==='phone'?record.loc?.at:null),phone_reference_lat:record.loc?.phoneReference?.lat??null,phone_reference_lon:record.loc?.phoneReference?.lon??null,phone_reference_accuracy_m:record.loc?.phoneReference?.accuracy??null,position_verification:record.status==='reviewed'?'reviewed':'provisional',ai_similarity_score:record.score??null,ai_suggested_sign_id:record.aiSuggestedId||null,reviewed_at:record.reviewedAt||null,notes:record.notes||'',road:record.road||'',sign_condition:record.condition||'unknown',post_condition:record.pole||'unknown',survey_session:record.session||'',sighting_count:record.sightingCount||1,last_seen_at:record.lastSeenAt||record.at,duplicate_decision:record.duplicateDecision||null,linked_sightings:record.linkedSightings||[]}};}
 /** Lightweight within-frame-region tracking: candidate IDs are temporary and NOT physical post IDs. */
 export function trackRegions(previous,proposals,nextId=1){
  const used=new Set(),current=[];
